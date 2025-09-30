@@ -2,6 +2,20 @@
 
 This document defines the core data types used throughout the fal-bundles system, referenced by both API and CLI operations.
 
+## Scope
+
+**Include in this file:**
+- Core domain primitives (e.g., `Blob`, `BundleSummary`, `BundleManifest`)
+- Shared data structures used across multiple endpoints
+- Common types referenced by both API and CLI
+
+**Do NOT include in this file:**
+- Request/response schemas for specific API endpoints (define these inline in `docs/api/*.md`)
+- Endpoint-specific types that are only used in one place
+- Transient or implementation-specific types
+
+Request and response schemas should be defined directly within their respective API documentation files to keep endpoint contracts self-contained.
+
 ## Blob
 
 Represents a file with its content hash and metadata.

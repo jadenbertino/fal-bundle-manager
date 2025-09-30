@@ -8,7 +8,12 @@ Allows clients to check which blobs need to be uploaded before creating a bundle
 
 - **Sources** — HTTP POST request to `/bundles/preflight`
 - **Parameters**
-  - Body: `PreflightRequest` (see [types.md](../types.md)) - array of `Blob` objects
+  - Body: `PreflightRequest`:
+    ```typescript
+    type PreflightRequest = {
+      files: Blob[]  // Array of Blob objects (see docs/types.md)
+    }
+    ```
 - **Pre-Conditions**
   - Each sha256 is lowercase 64-hex
   - Paths are relative (no '..', no leading '/')
