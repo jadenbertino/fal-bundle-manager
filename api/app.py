@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from api.config import ensure_directories
-from api.routes import preflight, create_blob, create_bundle, list_bundles
+from api.routes import preflight, create_blob, create_bundle, list_bundles, download_bundle
 
 app = FastAPI()
 
@@ -12,6 +12,7 @@ app.include_router(preflight.router)
 app.include_router(create_blob.router)
 app.include_router(create_bundle.router)
 app.include_router(list_bundles.router)
+app.include_router(download_bundle.router)
 
 
 @app.get("/status")
