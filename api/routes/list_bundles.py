@@ -5,7 +5,7 @@ from pathlib import Path
 from fastapi import APIRouter, HTTPException
 from shared.api_contracts.list_bundles import BundleListResponse
 from shared.types import BundleSummary
-from api.config import get_bundles_dir
+from shared.config import get_bundles_dir
 
 router = APIRouter()
 

@@ -2,7 +2,7 @@
 
 import hashlib
 from pathlib import Path
-from api.config import get_blobs_dir
+from shared.config import get_blobs_dir
 
 
 def get_blob_path(hash_str: str) -> Path:

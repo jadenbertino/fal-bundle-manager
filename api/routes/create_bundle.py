@@ -8,7 +8,7 @@ from fastapi.responses import JSONResponse
 from ulid import ULID
 from shared.api_contracts.create_bundle import BundleManifestDraft, BundleCreateResponse
 from api.storage import blob_exists
-from api.config import get_bundles_dir
+from shared.config import get_bundles_dir
 
 router = APIRouter()
 

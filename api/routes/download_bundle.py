@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Literal
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import StreamingResponse
-from api.config import get_bundles_dir
+from shared.config import get_bundles_dir
 from api.storage import get_blob_path
 
 router = APIRouter()
