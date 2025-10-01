@@ -38,7 +38,7 @@ Plain language explanation of what this operation does and its purpose. Keep it 
   - (What validation is required)
   - (Expected state of system)
 
-## Implementation Details
+## Business Logic
 
 - (High-level description of what the operation accepts/does)
 - (e.g. Validates request)
@@ -54,6 +54,17 @@ Plain language explanation of what this operation does and its purpose. Keep it 
 
 - (Changes to system state, e.g., writes files, creates database records, uploads data)
 - (Or "None (read-only operation)" if applicable)
+
+## Implementation Steps
+
+> This stays pretty much the same for most operations, but it's good to have a record of it.
+
+- Create request schema
+- Create response schema
+- Create pseudo-code tests
+- Create implementation, keep the business logic and pseudo-code in mind
+- Convert pseudo-code tests to actual tests
+- Run tests, fix any issues, repeat until all tests pass
 
 ## Output: Success
 

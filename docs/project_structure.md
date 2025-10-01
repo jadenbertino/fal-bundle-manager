@@ -35,15 +35,21 @@ CLI implementation
 
 ```
 ├── __init__.py
-├── __main__.py            # CLI entry point (python -m cli)
-├── commands/              # CLI command implementations
+├── __main__.py            # CLI entry point with argparse
+├── commands/              # CLI command wrappers
 │   ├── __init__.py
-│   ├── create.py          # Create bundle command
-│   ├── list.py            # List bundles command
-│   └── download.py        # Download bundle command
-├── client.py              # API client for server communication
-├── utils.py               # Utilities (hashing, formatting, progress)
-├── config.py              # CLI configuration (server URL, etc.)
+│   ├── create.py          # CLI wrapper for create command
+│   ├── list.py            # CLI wrapper for list command
+│   └── download.py        # CLI wrapper for download command
+├── core/                  # Core business logic (testable, no CLI deps)
+│   ├── __init__.py
+│   ├── file_discovery.py  # Walk directories, collect files with metadata
+│   ├── hashing.py         # SHA-256 hashing with streaming
+│   ├── uploader.py        # Orchestrate preflight + upload missing blobs
+│   └── bundler.py         # Full create bundle workflow orchestration
+├── client.py              # API client (HTTP requests to server)
+├── utils.py               # Formatting, progress bars, display utilities
+├── config.py              # CLI configuration (server URL, timeout, etc.)
 └── requirements.txt
 ```
 
@@ -78,11 +84,25 @@ Runtime data (gitignored)
 ```
 
 ### ./fixtures/
-Example files for testing and development
+Test fixtures and example files for testing and development
 
 ```
-├── models/
-└── config/
+└── test_data/              # Test fixtures for CLI/API testing
+    ├── README.txt          # Documentation
+    ├── file1.txt           # Small test file (12 bytes)
+    ├── file2.txt           # Multi-line test file
+    ├── empty.txt           # Empty file for edge cases
+    ├── large.bin           # Larger file for streaming tests
+    ├── configs/            # Directory with config files
+    │   ├── app.yaml
+    │   └── database.json
+    ├── models/             # Model directory
+    │   └── model.txt
+    ├── nested/             # Deeply nested structure
+    │   └── deep/
+    │       └── buried.txt
+    └── empty_dir/          # Empty directory with .gitkeep
+        └── .gitkeep
 ```
 
 ### ./docs/
