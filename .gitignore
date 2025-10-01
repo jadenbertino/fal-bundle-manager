@@ -1,2 +1,26 @@
 data/blobs/**/*
 data/bundles/**/*
+
+# Virtual environments
+.venv/
+api/.venv/
+cli/.venv/
+venv/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo

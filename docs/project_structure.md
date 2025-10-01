@@ -18,6 +18,14 @@ API server implementation
 │   ├── __init__.py
 │   ├── blob_store.py      # Blob storage implementation
 │   └── bundle_store.py    # Bundle manifest storage
+├── scripts/               # Development scripts
+│   ├── setup.sh           # Setup virtual environment and dependencies
+│   ├── start.sh           # Start development server
+│   └── test.sh            # Run test suite
+├── tests/                 # API tests
+│   ├── __init__.py
+│   ├── test_status.py     # Status endpoint test
+│   └── requirements.txt   # Test dependencies
 ├── config.py              # Configuration (env vars, constants)
 └── requirements.txt
 ```
@@ -55,23 +63,6 @@ Shared code between API and CLI
     └── download_bundle.py # Download parameters
 ```
 
-### ./tests/
-Test suite
-
-```
-├── __init__.py
-├── api/                   # API tests
-│   ├── test_blobs.py
-│   └── test_bundles.py
-├── cli/                   # CLI tests
-│   ├── test_create.py
-│   ├── test_list.py
-│   └── test_download.py
-├── integration/           # End-to-end integration tests
-│   └── test_e2e.py
-├── fixtures/              # Test fixtures and sample data
-└── requirements.txt
-```
 
 ### ./data/
 Runtime data (gitignored)

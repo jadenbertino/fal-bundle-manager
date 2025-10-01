@@ -1,26 +1,79 @@
-<!--
+# fal-bundles
 
-Mock README.md, nothing is implemented yet so this will likely change
+A content-addressable storage system for managing resource bundles.
 
-# Quickstart
+## Quickstart
 
-## 1) Setup
-python -m venv .venv && source .venv/bin/activate
-pip install -r api/requirements.txt -r cli/requirements.txt -r tests/requirements.txt
+### Setup
 
-## 2) Run server
-DATA_DIR=./data uvicorn api.app:app --reload --port 8000
+```bash
+./api/scripts/setup.sh
+```
 
-## 3) Use CLI
-python -m cli create ./fixtures/models ./fixtures/config
-python -m cli list
-python -m cli download <bundle_id> --format zip
+This will create a virtual environment at `api/.venv` and install all dependencies.
 
-Makefile convenience:
+### Start the Development Server
 
-- [ ] make run-api: uvicorn api.app:app --reload --port 8000
-- [ ] make cli: python -m cli --help
-- [ ] make test: pytest -q
-- [ ] make fmt: black/isort/ruff
+```bash
+./api/scripts/start.sh
+```
 
--->
+The server will start on http://localhost:8000 (configurable via `HOST` and `PORT` environment variables).
+
+### Run Tests
+
+```bash
+./api/scripts/test.sh
+```
+
+### Available Endpoints
+
+- `GET /status` - Health check endpoint (returns 200 OK)
+
+## Development
+
+### Scripts
+
+All development scripts are located in `api/scripts/`:
+
+- **`setup.sh`** - Creates virtual environment and installs dependencies
+- **`start.sh`** - Starts the development server (runs setup automatically if needed)
+- **`test.sh`** - Runs the test suite with pytest
+
+### Environment Variables
+
+**API Server:**
+- `DATA_DIR` - Data storage location (default: `./data`)
+- `HOST` - Server host (default: `0.0.0.0`)
+- `PORT` - Server port (default: `8000`)
+
+### Manual Commands
+
+If you prefer to run commands manually:
+
+```bash
+# Activate virtual environment
+source api/.venv/bin/activate
+
+# Run server
+uvicorn api.app:app --reload --host 0.0.0.0 --port 8000
+
+# Run tests
+pytest tests/ -v
+```
+
+### Project Structure
+
+```
+api/
+├── app.py              # FastAPI application
+├── requirements.txt    # API dependencies
+└── scripts/
+    ├── setup.sh        # Setup script
+    ├── start.sh        # Start server script
+    └── test.sh         # Test runner script
+
+tests/
+├── test_status.py      # API tests
+└── requirements.txt    # Test dependencies
+```
