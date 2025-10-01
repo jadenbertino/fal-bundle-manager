@@ -1,8 +1,6 @@
 import requests
 from pathlib import Path
-
-
-BASE_URL = "http://localhost:8000"
+from api.tests.helpers import BASE_URL
 
 
 def test_preflight_empty_files():

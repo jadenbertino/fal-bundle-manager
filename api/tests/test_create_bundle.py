@@ -1,22 +1,7 @@
 import requests
 import json
 from pathlib import Path
-from api.storage import calculate_sha256
-
-
-BASE_URL = "http://localhost:8000"
-
-
-def create_blob(content: bytes) -> str:
-    """Helper: Create a blob and return its hash."""
-    hash_val = calculate_sha256(content)
-    response = requests.put(
-        f"{BASE_URL}/blobs/{hash_val}",
-        params={"size_bytes": len(content)},
-        data=content
-    )
-    assert response.status_code in [200, 201]
-    return hash_val
+from api.tests.helpers import BASE_URL, create_blob
 
 
 def test_create_bundle_simple():

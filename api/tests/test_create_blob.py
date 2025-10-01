@@ -1,9 +1,7 @@
 import requests
 from pathlib import Path
 from api.storage import calculate_sha256
-
-
-BASE_URL = "http://localhost:8000"
+from api.tests.helpers import BASE_URL
 
 
 def test_create_blob_new():
