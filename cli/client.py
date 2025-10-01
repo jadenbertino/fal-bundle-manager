@@ -1,10 +1,11 @@
 """API client for communicating with the fal-bundles server."""
 
 import requests
-from typing import BinaryIO
+from typing import BinaryIO, Iterator
 from shared.api_contracts.preflight import PreflightRequest, PreflightResponse
 from shared.api_contracts.create_bundle import BundleManifestDraft, BundleCreateResponse
 from shared.api_contracts.list_bundles import BundleListResponse
+from shared.api_contracts.download_bundle import DownloadBundleParams
 
 
 class BundlesAPIClient:
@@ -97,3 +98,32 @@ class BundlesAPIClient:
         )
         response.raise_for_status()
         return BundleListResponse(**response.json())
+
+    def download_bundle(self, bundle_id: str, format: str = "zip") -> Iterator[bytes]:
+        """
+        Download a bundle as a streaming archive.
+
+        Args:
+            bundle_id: ID of the bundle to download
+            format: Archive format (default: "zip")
+
+        Returns:
+            Iterator of bytes chunks for streaming the download
+
+        Raises:
+            requests.exceptions.HTTPError: If bundle not found (404) or other HTTP errors
+            requests.exceptions.RequestException: For network/connection errors
+        """
+        url = f"{self.base_url}/bundles/{bundle_id}/download"
+        params = DownloadBundleParams(format=format).model_dump()
+
+        response = self.session.get(
+            url,
+            params=params,
+            stream=True,
+            timeout=self.timeout
+        )
+        response.raise_for_status()
+
+        # Stream the response in chunks
+        return response.iter_content(chunk_size=8192)
