@@ -32,7 +32,7 @@ Allows clients to check which blobs need to be uploaded before creating a bundle
   - Each blob entry has `hash_algo` set to "sha256"
   - Rejects duplicate paths in single request; throws `400` error if duplicates found
 - Checks blob existence
-  - For each hash, check if blob file exists at `data/blobs/{first2chars}/{next2chars}/{fullhash}`
+  - For each hash, check if blob file exists at `.data/blobs/{first2chars}/{next2chars}/{fullhash}`
   - Uses efficient file existence checking (avoids directory scans)
   - Builds set of missing hashes
 - Returns `PreflightResponse` with array of missing hashes

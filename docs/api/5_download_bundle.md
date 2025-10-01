@@ -20,12 +20,12 @@ Allows clients to download a complete bundle as a streaming archive file with al
 - Accept GET requests to `/bundles/{id}/download`
 - Validates request
   - Validates bundle ID format
-  - Checks if bundle manifest exists at `data/bundles/{id}.json`
+  - Checks if bundle manifest exists at `.data/bundles/{id}.json`
   - Loads and parses bundle manifest
   - Validates manifest structure
   - Validates requested format against supported formats (currently "zip" only); throws `415` if unsupported
 - Collects blobs
-  - For each file in bundle manifest, verifies blob exists at `data/blobs/{first2chars}/{next2chars}/{fullhash}`
+  - For each file in bundle manifest, verifies blob exists at `.data/blobs/{first2chars}/{next2chars}/{fullhash}`
   - Collects blob file path and bundle path mapping
   - Fails with `500` if any required blobs are missing
 - Generates archive

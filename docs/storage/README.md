@@ -1,16 +1,16 @@
 ### Blob Storage
 
-**Location**: `data/blobs/`
+**Location**: `.data/blobs/`
 
 **Structure**:
 ```
-data/blobs/{first2}/{next2}/{fullhash}
+.data/blobs/{first2}/{next2}/{fullhash}
 ```
 
 **Example**:
 ```
 SHA-256: a1b2c3d4e5f6...
-Path:    data/blobs/a1/b2/a1b2c3d4e5f6...
+Path:    .data/blobs/a1/b2/a1b2c3d4e5f6...
 ```
 
 **Benefits**:
@@ -19,18 +19,18 @@ Path:    data/blobs/a1/b2/a1b2c3d4e5f6...
 - Immutable blobs enable caching and safe concurrent access
 
 **Upload Flow**:
-1. Write to temp file: `data/tmp/{timestamp}_{uuid}`
+1. Write to temp file: `.data/tmp/{timestamp}_{uuid}`
 2. Stream and verify SHA-256 hash
 3. Move to final location (atomic operation)
 4. Return 409 Conflict if hash mismatch
 
 ### Bundle Storage
 
-**Location**: `data/bundles/`
+**Location**: `.data/bundles/`
 
 **Structure**:
 ```
-data/bundles/{id}.json
+.data/bundles/{id}.json
 ```
 
 **Manifest Format**:

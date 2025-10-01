@@ -22,12 +22,12 @@ Allows clients to upload a blob by its hash, ensuring idempotency and deduplicat
   - size_bytes <= ENV.MAX_UPLOAD_BYTES (1gb default); throws `413` if exceeded
 - Checks if file already exists; if yes then early `200` return
 - verifies file integrity
-  - Writes the file to `data/tmp/<iso timestamp>_<uuid>`
+  - Writes the file to `.data/tmp/<iso timestamp>_<uuid>`
   - stream hashes the file and verifies it matches the provided SHA-256 hash
   - throws `409` on mismatch
 - Stores file
-  - moves file from `data/tmp/` to `data/blobs`
-  - Store blobs with fanout directory structure in the format: `data/blobs/{first2chars}/{next2chars}/{fullhash}`
+  - moves file from `.data/tmp/` to `.data/blobs`
+  - Store blobs with fanout directory structure in the format: `.data/blobs/{first2chars}/{next2chars}/{fullhash}`
 - Return `201` Created for new blob
 
 ## Side Effects

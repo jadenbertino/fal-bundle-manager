@@ -16,7 +16,7 @@ Allows clients to retrieve a list of all available bundles with basic metadata, 
 
 - Accept GET requests to `/bundles`
 - Discovers bundles
-  - Enumerates all `*.json` files in `data/bundles/` directory
+  - Enumerates all `*.json` files in `.data/bundles/` directory
   - Uses efficient directory listing (avoids loading file contents initially)
   - Filters for valid bundle manifest files
 - Reads manifests

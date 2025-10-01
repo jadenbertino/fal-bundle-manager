@@ -64,7 +64,7 @@ Shared code between API and CLI
 ```
 
 
-### ./data/
+### ./.data/
 Runtime data (gitignored)
 
 ```

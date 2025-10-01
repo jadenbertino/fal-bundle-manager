@@ -18,7 +18,7 @@
 - **Details**:
   - Idempotent operation
   - Verifies hash matches content
-  - Stores in fanout directory structure: `data/blobs/{aa}/{bb}/{hash}`
+  - Stores in fanout directory structure: `.data/blobs/{aa}/{bb}/{hash}`
 
 #### 3. Create Bundle
 - For more details, see [docs/api/3_create_bundle.md](./3_create_bundle.md)

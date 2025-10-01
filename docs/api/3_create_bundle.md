@@ -36,7 +36,7 @@ Allows clients to create a bundle from already-uploaded blobs, generating a mani
   - Rejects duplicate paths; throws `400` error if duplicates found
   - Validates optional `id` format if provided by client
 - Verifies blob existence
-  - For each file in manifest, verify blob exists at `data/blobs/{first2chars}/{next2chars}/{fullhash}`
+  - For each file in manifest, verify blob exists at `.data/blobs/{first2chars}/{next2chars}/{fullhash}`
   - Uses efficient batch checking (reuses preflight logic)
   - Fails with `409` Conflict if any blob is missing
 - Generates bundle ID
@@ -47,13 +47,13 @@ Allows clients to create a bundle from already-uploaded blobs, generating a mani
   - Sums `size_bytes` for all files to get total `bytes`
 - Stores manifest
   - Creates complete `BundleManifest` object with id, created_at (ISO-8601), hash_algo, files, and stats
-  - Writes manifest as JSON to `data/bundles/{id}.json`
+  - Writes manifest as JSON to `.data/bundles/{id}.json`
   - Ensures atomic write operation
 - Returns `201` Created with bundle metadata
 
 ## Side Effects
 
-- Writes bundle manifest file to `data/bundles/{id}.json`
+- Writes bundle manifest file to `.data/bundles/{id}.json`
 - Updates in-memory/derived index used by list endpoint
 
 ## Output: Success
