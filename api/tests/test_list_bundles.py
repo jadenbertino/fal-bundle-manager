@@ -5,10 +5,10 @@ from api.tests.helpers import BASE_URL, create_blob, create_bundle
 
 def test_list_bundles_empty():
     """Test listing bundles when none exist."""
-    # Clean up bundles directory
-    bundles_dir = Path(".data") / "bundles"
-    if bundles_dir.exists():
-        for bundle_file in bundles_dir.glob("*.json"):
+    # Clean up bundles summaries directory
+    summaries_dir = Path(".data") / "bundles" / "summaries"
+    if summaries_dir.exists():
+        for bundle_file in summaries_dir.glob("*.json"):
             bundle_file.unlink()
 
     response = requests.get(f"{BASE_URL}/bundles")

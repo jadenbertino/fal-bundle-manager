@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Literal
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import StreamingResponse
-from shared.config import get_bundles_dir
+from shared.config import get_bundle_manifests_dir
 from api.storage import get_blob_path
 
 router = APIRouter()
@@ -42,9 +42,9 @@ async def download_bundle(
                 detail=f"Unsupported format '{format}'. Only 'zip' is supported."
             )
 
-        # Check if bundle exists
-        bundles_dir = get_bundles_dir()
-        manifest_path = bundles_dir / f"{bundle_id}.json"
+        # Check if bundle manifest exists
+        manifests_dir = get_bundle_manifests_dir()
+        manifest_path = manifests_dir / f"{bundle_id}.json"
 
         if not manifest_path.exists():
             raise HTTPException(

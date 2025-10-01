@@ -5,7 +5,7 @@ from pathlib import Path
 from fastapi import APIRouter, HTTPException
 from shared.api_contracts.list_bundles import BundleListResponse
 from shared.types import BundleSummary
-from shared.config import get_bundles_dir
+from shared.config import get_bundle_summaries_dir
 
 router = APIRouter()
 
@@ -16,6 +16,7 @@ async def list_bundles():
     List all available bundles with metadata.
 
     Returns bundle summaries sorted by created_at descending (newest first).
+    Reads from summaries directory (which does NOT include files list).
 
     Returns:
         BundleListResponse with array of BundleSummary objects
@@ -25,34 +26,34 @@ async def list_bundles():
             - 500: Storage read failure
     """
     try:
-        bundles_dir = get_bundles_dir()
+        summaries_dir = get_bundle_summaries_dir()
         bundles = []
 
-        # Check if bundles directory exists
-        if not bundles_dir.exists():
+        # Check if summaries directory exists
+        if not summaries_dir.exists():
             return BundleListResponse(bundles=[])
 
-        # Enumerate all .json files in bundles directory
-        for manifest_path in bundles_dir.glob("*.json"):
+        # Enumerate all .json files in summaries directory
+        for summary_path in summaries_dir.glob("*.json"):
             try:
-                # Read manifest file
-                manifest_text = manifest_path.read_text()
-                manifest = json.loads(manifest_text)
+                # Read summary file
+                summary_text = summary_path.read_text()
+                summary = json.loads(summary_text)
 
                 # Extract required fields for BundleSummary
                 bundle_summary = BundleSummary(
-                    id=manifest["id"],
-                    created_at=manifest["created_at"],
-                    hash_algo=manifest.get("hash_algo", "sha256"),
-                    file_count=manifest.get("file_count", 0),
-                    total_bytes=manifest.get("total_bytes", 0)
+                    id=summary["id"],
+                    created_at=summary["created_at"],
+                    hash_algo=summary.get("hash_algo", "sha256"),
+                    file_count=summary.get("file_count", 0),
+                    total_bytes=summary.get("total_bytes", 0)
                 )
                 bundles.append(bundle_summary)
 
             except (json.JSONDecodeError, KeyError) as e:
-                # Log and skip corrupted/invalid manifests
+                # Log and skip corrupted/invalid summaries
                 # In production, use proper logging
-                print(f"Warning: Skipping invalid manifest {manifest_path}: {e}")
+                print(f"Warning: Skipping invalid summary {summary_path}: {e}")
                 continue
 
         # Sort by created_at descending (newest first)

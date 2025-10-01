@@ -23,6 +23,16 @@ def get_bundles_dir() -> Path:
     return get_data_dir() / "bundles"
 
 
+def get_bundle_manifests_dir() -> Path:
+    """Get the bundle manifests directory path."""
+    return get_bundles_dir() / "manifests"
+
+
+def get_bundle_summaries_dir() -> Path:
+    """Get the bundle summaries directory path."""
+    return get_bundles_dir() / "summaries"
+
+
 def get_tmp_dir() -> Path:
     """Get the temp directory path."""
     return get_data_dir() / "tmp"
@@ -31,7 +41,8 @@ def get_tmp_dir() -> Path:
 def ensure_directories():
     """Create necessary directories if they don't exist."""
     get_blobs_dir().mkdir(parents=True, exist_ok=True)
-    get_bundles_dir().mkdir(parents=True, exist_ok=True)
+    get_bundle_manifests_dir().mkdir(parents=True, exist_ok=True)
+    get_bundle_summaries_dir().mkdir(parents=True, exist_ok=True)
     get_tmp_dir().mkdir(parents=True, exist_ok=True)
 
 
