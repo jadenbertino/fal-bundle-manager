@@ -43,9 +43,9 @@ async def list_bundles():
                 bundle_summary = BundleSummary(
                     id=manifest["id"],
                     created_at=manifest["created_at"],
-                    hash_algo=manifest["hash_algo"],
-                    file_count=manifest["file_count"],
-                    bytes=manifest["bytes"]
+                    hash_algo=manifest.get("hash_algo", "sha256"),
+                    file_count=manifest.get("file_count", 0),
+                    total_bytes=manifest.get("total_bytes", 0)
                 )
                 bundles.append(bundle_summary)
 

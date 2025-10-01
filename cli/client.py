@@ -4,6 +4,7 @@ import requests
 from typing import BinaryIO
 from shared.api_contracts.preflight import PreflightRequest, PreflightResponse
 from shared.api_contracts.create_bundle import BundleManifestDraft, BundleCreateResponse
+from shared.api_contracts.list_bundles import BundleListResponse
 
 
 class BundlesAPIClient:
@@ -81,3 +82,18 @@ class BundlesAPIClient:
         )
         response.raise_for_status()
         return BundleCreateResponse(**response.json())
+
+    def list_bundles(self) -> BundleListResponse:
+        """
+        List all available bundles.
+
+        Returns:
+            BundleListResponse with list of bundle summaries
+        """
+        url = f"{self.base_url}/bundles"
+        response = self.session.get(
+            url,
+            timeout=self.timeout
+        )
+        response.raise_for_status()
+        return BundleListResponse(**response.json())

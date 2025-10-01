@@ -55,17 +55,6 @@ Plain language explanation of what this operation does and its purpose. Keep it 
 - (Changes to system state, e.g., writes files, creates database records, uploads data)
 - (Or "None (read-only operation)" if applicable)
 
-## Implementation Steps
-
-> This stays pretty much the same for most operations, but it's good to have a record of it.
-
-- Create request schema
-- Create response schema
-- Create pseudo-code tests
-- Create implementation, keep the business logic and pseudo-code in mind
-- Convert pseudo-code tests to actual tests
-- Run tests, fix any issues, repeat until all tests pass
-
 ## Output: Success
 
 - HTTP `2XX` Status with `ResponseType` (for APIs):
@@ -84,6 +73,44 @@ Plain language explanation of what this operation does and its purpose. Keep it 
 - (Include specific error messages where applicable)
 
 ### Testing
-- (Types of tests needed)
-- (Specific test scenarios to cover)
-- (Edge cases to validate)
+
+Define test scenarios in Gherkin syntax, using the following keyword definitions:
+
+- **Feature:** Describes the functionality being tested.
+- **Scenario:** Represents a single, specific test case within the feature.
+- **Given:** Sets up the initial context or state (preconditions).
+- **When:** Specifies the action or event performed by the user or system.
+- **Then:** States the expected outcome or result.
+- **And / But (Optional):** Used to add extra steps or details to any of the above.
+
+Example:
+
+```gherkin
+Feature: [Feature Title]
+
+  Scenario: [Scenario Title]
+    Given [initial context or state/precondition]
+    When [action or event]
+    Then [expected outcome/result]
+    And [additional assertions if needed]
+  
+  Scenario: [Scenario Title 2]
+    ...etc
+  
+  Scenario: [Scenario Title 3]
+    ...etc
+
+  ...etc
+```
+
+## Implementation Steps
+
+> This stays pretty much the same for most operations.
+> Usually there's no need to change this section.
+
+- Ensure contract is filled out
+- Create request schema
+- Create response schema
+- Create implementation, keep the business logic and test scenarios in mind
+- Convert Gherkin test scenarios to actual tests
+- Run tests, fix any issues, repeat until all tests pass

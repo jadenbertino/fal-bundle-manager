@@ -74,7 +74,7 @@ async def create_bundle(request: BundleManifestDraft):
             "hash_algo": request.hash_algo,
             "files": [file.model_dump() for file in request.files],
             "file_count": file_count,
-            "bytes": total_bytes
+            "total_bytes": total_bytes
         }
 
         # Write manifest to storage

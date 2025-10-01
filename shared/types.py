@@ -27,9 +27,10 @@ class BundleSummary(BaseModel):
 
     id: str = Field(..., description="Unique bundle identifier")
     created_at: str = Field(..., description="ISO 8601 timestamp (e.g., '2023-12-25T10:30:00Z')")
-    hash_algo: Literal["sha256"] = Field(..., description="Hash algorithm used")
+    hash_algo: Literal["sha256"] = Field(default="sha256", description="Hash algorithm used")
     file_count: int = Field(..., ge=0, description="Number of files in bundle")
-    bytes: int = Field(..., ge=0, description="Total size of all files in bytes")
+    total_bytes: int = Field(..., ge=0, description="Total size of all files in bytes")
+
 
 class BundleManifest(BundleSummary):
     """Complete bundle information including all files."""

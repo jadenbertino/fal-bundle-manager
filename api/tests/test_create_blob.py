@@ -147,6 +147,11 @@ def test_create_blob_empty_file():
     content = b""
     hash_val = calculate_sha256(content)
 
+    # Delete blob if it exists from previous test
+    blob_path = Path(".data") / "blobs" / hash_val[:2] / hash_val[2:4] / hash_val
+    if blob_path.exists():
+        blob_path.unlink()
+
     response = requests.put(
         f"{BASE_URL}/blobs/{hash_val}",
         params={"size_bytes": 0},
@@ -158,7 +163,6 @@ def test_create_blob_empty_file():
     assert data["hash"] == hash_val
 
     # Cleanup
-    blob_path = Path(".data") / "blobs" / hash_val[:2] / hash_val[2:4] / hash_val
     assert blob_path.exists()
     blob_path.unlink()
 

@@ -42,7 +42,7 @@ def test_create_bundle_simple():
     assert len(manifest["files"]) == 1
     assert manifest["files"][0]["hash"] == hash_val
     assert manifest["file_count"] == 1
-    assert manifest["bytes"] == len(content)
+    assert manifest["total_bytes"] == len(content)
 
 
 def test_create_bundle_multiple_files():
@@ -78,7 +78,7 @@ def test_create_bundle_multiple_files():
     manifest_path = Path(".data") / "bundles" / f"{data['id']}.json"
     manifest = json.loads(manifest_path.read_text())
     assert manifest["file_count"] == 3
-    assert manifest["bytes"] == total_bytes
+    assert manifest["total_bytes"] == total_bytes
 
 
 def test_create_bundle_with_client_id():
@@ -289,7 +289,7 @@ def test_create_bundle_empty_files():
     manifest_path = Path(".data") / "bundles" / f"{data['id']}.json"
     manifest = json.loads(manifest_path.read_text())
     assert manifest["file_count"] == 0
-    assert manifest["bytes"] == 0
+    assert manifest["total_bytes"] == 0
 
 
 def test_create_bundle_statistics():
@@ -322,5 +322,5 @@ def test_create_bundle_statistics():
     manifest_path = Path(".data") / "bundles" / f"{response.json()['id']}.json"
     manifest = json.loads(manifest_path.read_text())
     assert manifest["file_count"] == 3
-    assert manifest["bytes"] == expected_total
-    assert manifest["bytes"] == 400  # 100 + 250 + 50
+    assert manifest["total_bytes"] == expected_total
+    assert manifest["total_bytes"] == 400  # 100 + 250 + 50
