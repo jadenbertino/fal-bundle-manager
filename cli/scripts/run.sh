@@ -52,6 +52,5 @@ source "$CLI_DIR/.venv/bin/activate"
 # Set PYTHONPATH to project root
 export PYTHONPATH="$PROJECT_ROOT"
 
-# Run CLI with all passed arguments
-cd "$PROJECT_ROOT"
+# Run CLI with all passed arguments (stay in current directory)
 python -m cli "$@"
