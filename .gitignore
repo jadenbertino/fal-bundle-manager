@@ -1,6 +1,5 @@
 # Application data
-.data/blobs/**/*
-.data/bundles/**/*
+.data
 
 # Virtual environments
 .venv/

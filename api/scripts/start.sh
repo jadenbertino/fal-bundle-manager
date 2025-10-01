@@ -18,7 +18,7 @@ fi
 source "$VENV_DIR/bin/activate"
 
 # Set default environment variables
-export DATA_DIR="${DATA_DIR:-$PROJECT_ROOT/data}"
+export DATA_DIR="${DATA_DIR:-$PROJECT_ROOT/.data}"
 export HOST="${HOST:-0.0.0.0}"
 export PORT="${PORT:-8000}"
 
