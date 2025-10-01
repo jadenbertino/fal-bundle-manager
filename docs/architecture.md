@@ -9,6 +9,8 @@ The fal-bundles system is a content-addressable storage solution for managing re
 
 The system uses content-addressable storage (hash-based deduplication) to efficiently store files and enable idempotent uploads.
 
+See [docs/project_overview.md](./project_overview.md) for more details.
+
 ## Core Concepts
 
 - **Blob** - a content-addressed file stored by its SHA-256 hash. Blobs are immutable and deduplicated - the same file content is only stored once regardless of how many bundles reference it.
