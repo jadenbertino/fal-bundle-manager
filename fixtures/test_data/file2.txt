@@ -1,0 +1,3 @@
+This is a test file for bundle creation.
+It has multiple lines.
+And some content to hash.

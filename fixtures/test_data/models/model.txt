@@ -1,0 +1,3 @@
+This is a placeholder for a model file.
+In reality this would be a large binary file.
+For testing purposes, this simple text file suffices.
