@@ -1,5 +1,6 @@
 """Storage utility functions for blob operations."""
 
+import hashlib
 from pathlib import Path
 from api.config import get_blobs_dir
 
@@ -29,3 +30,21 @@ def blob_exists(hash_str: str) -> bool:
         True if blob exists, False otherwise
     """
     return get_blob_path(hash_str).exists()
+
+
+def calculate_sha256(content: bytes) -> str:
+    """
+    Calculate SHA-256 hash of content.
+
+    Use this for small in-memory content (tests, CLI).
+    For large files or streaming I/O
+    (e.g. receiving a file from a HTTP request),
+    use incremental hashing with hasher.update() instead.
+
+    Args:
+        content: The bytes to hash
+
+    Returns:
+        The SHA-256 hash as a lowercase hexadecimal string
+    """
+    return hashlib.sha256(content).hexdigest()
