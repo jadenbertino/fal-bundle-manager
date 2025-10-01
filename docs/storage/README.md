@@ -1,16 +1,16 @@
 ### Blob Storage
 
-**Location**: `.data/blobs/`
+**Location**: `api/.data/blobs/`
 
 **Structure**:
 ```
-.data/blobs/{first2}/{next2}/{fullhash}
+api/.data/blobs/{first2}/{next2}/{fullhash}
 ```
 
 **Example**:
 ```
 SHA-256: a1b2c3d4e5f6...
-Path:    .data/blobs/a1/b2/a1b2c3d4e5f6...
+Path:    api/.data/blobs/a1/b2/a1b2c3d4e5f6...
 ```
 
 **Benefits**:
@@ -19,19 +19,25 @@ Path:    .data/blobs/a1/b2/a1b2c3d4e5f6...
 - Immutable blobs enable caching and safe concurrent access
 
 **Upload Flow**:
-1. Write to temp file: `.data/tmp/{timestamp}_{uuid}`
+1. Write to temp file: `api/.data/tmp/{timestamp}_{uuid}`
 2. Stream and verify SHA-256 hash
 3. Move to final location (atomic operation)
 4. Return 409 Conflict if hash mismatch
 
 ### Bundle Storage
 
-**Location**: `.data/bundles/`
+Bundle data is split into two separate locations for efficiency:
+
+#### Bundle Manifests
+
+**Location**: `api/.data/bundles/manifests/`
 
 **Structure**:
 ```
-.data/bundles/{id}.json
+api/.data/bundles/manifests/{id}.json
 ```
+
+**Purpose**: Complete bundle information including file list (used for downloads)
 
 **Manifest Format**:
 ```json
@@ -47,9 +53,35 @@ Path:    .data/blobs/a1/b2/a1b2c3d4e5f6...
       "hash_algo": "sha256"
     }
   ],
-  "stats": {
-    "file_count": 10,
-    "bytes": 524288
-  }
+  "file_count": 10,
+  "total_bytes": 524288
 }
 ```
+
+#### Bundle Summaries
+
+**Location**: `api/.data/bundles/summaries/`
+
+**Structure**:
+```
+api/.data/bundles/summaries/{id}.json
+```
+
+**Purpose**: Lightweight bundle metadata without file list (used for listing operations)
+
+**Summary Format**:
+```json
+{
+  "id": "01HQZX...",
+  "created_at": "2023-12-25T10:30:00Z",
+  "hash_algo": "sha256",
+  "file_count": 10,
+  "total_bytes": 524288
+}
+```
+
+**Benefits**:
+- Summaries are much smaller (no `files` array)
+- List operations are faster and use less memory
+- Download operations use manifests to get complete file information
+- Both files are created atomically when a bundle is created

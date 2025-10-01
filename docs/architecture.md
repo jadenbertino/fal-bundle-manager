@@ -53,6 +53,7 @@ CLI                    API Server              Storage
  |--4. POST /bundles------>|                       |
  |                         |--Verify blobs-------->|
  |                         |--Write manifest------>|
+ |                         |--Write summary------->|
  |<---Bundle ID------------|                       |
  |                         |                       |
  |--5. Print ID            |                       |
@@ -85,10 +86,15 @@ CLI                    API Server              Storage
 - **Rationale**: Prevents filesystem performance degradation with many files
 - **Trade-off**: Adds slight complexity to path construction
 
-### 3. JSON Manifests
-- **Decision**: Store bundle metadata as JSON files
-- **Rationale**: Simple, human-readable, no database dependency
-- **Trade-off**: Not suitable for high-volume production (would need database)
+### 3. Split Bundle Storage (Manifests + Summaries)
+- **Decision**: Store bundle data in two separate JSON files per bundle
+  - **Manifests** (`bundles/manifests/{id}.json`): Complete bundle info with files array
+  - **Summaries** (`bundles/summaries/{id}.json`): Lightweight metadata without files array
+- **Rationale**:
+  - List operations only need summaries (faster, less memory)
+  - Download operations need full manifests with file list
+  - Separation improves performance for common operations
+- **Trade-off**: Writes two files per bundle, but significant performance gain for list operations
 
 ### 4. Streaming Uploads/Downloads
 - **Decision**: Stream file content instead of loading into memory
