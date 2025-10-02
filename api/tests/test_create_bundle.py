@@ -30,19 +30,29 @@ def test_create_bundle_simple():
     assert "id" in data
     assert "created_at" in data
 
-    # Verify manifest file exists
+    # Verify manifest and summary files exist
     bundle_id = data["id"]
-    manifest_path = Path(".data") / "bundles" / f"{bundle_id}.json"
+    manifest_path = Path(".data") / "bundles" / "manifests" / f"{bundle_id}.json"
+    summary_path = Path(".data") / "bundles" / "summaries" / f"{bundle_id}.json"
     assert manifest_path.exists()
+    assert summary_path.exists()
 
-    # Verify manifest content
+    # Verify manifest content (includes files)
     manifest = json.loads(manifest_path.read_text())
     assert manifest["id"] == bundle_id
     assert manifest["hash_algo"] == "sha256"
     assert len(manifest["files"]) == 1
     assert manifest["files"][0]["hash"] == hash_val
     assert manifest["file_count"] == 1
-    assert manifest["bytes"] == len(content)
+    assert manifest["total_bytes"] == len(content)
+
+    # Verify summary content (does NOT include files)
+    summary = json.loads(summary_path.read_text())
+    assert summary["id"] == bundle_id
+    assert summary["hash_algo"] == "sha256"
+    assert "files" not in summary
+    assert summary["file_count"] == 1
+    assert summary["total_bytes"] == len(content)
 
 
 def test_create_bundle_multiple_files():
@@ -74,11 +84,18 @@ def test_create_bundle_multiple_files():
     assert response.status_code == 201
     data = response.json()
 
-    # Verify manifest
-    manifest_path = Path(".data") / "bundles" / f"{data['id']}.json"
+    # Verify manifest and summary
+    manifest_path = Path(".data") / "bundles" / "manifests" / f"{data['id']}.json"
+    summary_path = Path(".data") / "bundles" / "summaries" / f"{data['id']}.json"
+
     manifest = json.loads(manifest_path.read_text())
     assert manifest["file_count"] == 3
-    assert manifest["bytes"] == total_bytes
+    assert manifest["total_bytes"] == total_bytes
+
+    summary = json.loads(summary_path.read_text())
+    assert summary["file_count"] == 3
+    assert summary["total_bytes"] == total_bytes
+    assert "files" not in summary
 
 
 def test_create_bundle_with_client_id():
@@ -106,9 +123,11 @@ def test_create_bundle_with_client_id():
     data = response.json()
     assert data["id"] == client_id
 
-    # Verify manifest exists with custom ID
-    manifest_path = Path(".data") / "bundles" / f"{client_id}.json"
+    # Verify manifest and summary exist with custom ID
+    manifest_path = Path(".data") / "bundles" / "manifests" / f"{client_id}.json"
+    summary_path = Path(".data") / "bundles" / "summaries" / f"{client_id}.json"
     assert manifest_path.exists()
+    assert summary_path.exists()
 
 
 def test_create_bundle_duplicate_id_conflict():
@@ -285,11 +304,19 @@ def test_create_bundle_empty_files():
     assert response.status_code == 201
     data = response.json()
 
-    # Verify manifest
-    manifest_path = Path(".data") / "bundles" / f"{data['id']}.json"
+    # Verify manifest and summary
+    bundle_id = data["id"]
+    manifest_path = Path(".data") / "bundles" / "manifests" / f"{bundle_id}.json"
+    summary_path = Path(".data") / "bundles" / "summaries" / f"{bundle_id}.json"
+
     manifest = json.loads(manifest_path.read_text())
     assert manifest["file_count"] == 0
-    assert manifest["bytes"] == 0
+    assert manifest["total_bytes"] == 0
+
+    summary = json.loads(summary_path.read_text())
+    assert summary["file_count"] == 0
+    assert summary["total_bytes"] == 0
+    assert "files" not in summary
 
 
 def test_create_bundle_statistics():
@@ -319,8 +346,16 @@ def test_create_bundle_statistics():
     assert response.status_code == 201
 
     # Verify statistics
-    manifest_path = Path(".data") / "bundles" / f"{response.json()['id']}.json"
+    bundle_id = response.json()['id']
+    manifest_path = Path(".data") / "bundles" / "manifests" / f"{bundle_id}.json"
+    summary_path = Path(".data") / "bundles" / "summaries" / f"{bundle_id}.json"
+
     manifest = json.loads(manifest_path.read_text())
     assert manifest["file_count"] == 3
-    assert manifest["bytes"] == expected_total
-    assert manifest["bytes"] == 400  # 100 + 250 + 50
+    assert manifest["total_bytes"] == expected_total
+    assert manifest["total_bytes"] == 400  # 100 + 250 + 50
+
+    summary = json.loads(summary_path.read_text())
+    assert summary["file_count"] == 3
+    assert summary["total_bytes"] == expected_total
+    assert "files" not in summary

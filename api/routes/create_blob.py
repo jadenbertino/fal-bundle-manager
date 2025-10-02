@@ -9,7 +9,7 @@ from fastapi.responses import JSONResponse
 from shared.api_contracts.create_blob import BlobUploadResponse
 from shared.validation import validate_sha256_hash
 from api.storage import blob_exists, get_blob_path
-from api.config import get_tmp_dir, MAX_UPLOAD_BYTES
+from shared.config import get_tmp_dir, MAX_UPLOAD_BYTES
 
 router = APIRouter()
 

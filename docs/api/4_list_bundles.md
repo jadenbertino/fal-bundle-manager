@@ -16,19 +16,24 @@ Allows clients to retrieve a list of all available bundles with basic metadata, 
 
 - Accept GET requests to `/bundles`
 - Discovers bundles
-  - Enumerates all `*.json` files in `.data/bundles/` directory
+  - Enumerates all `*.json` files in `api/.data/bundles/summaries/` directory
   - Uses efficient directory listing (avoids loading file contents initially)
-  - Filters for valid bundle manifest files
-- Reads manifests
-  - For each bundle file, reads minimal required fields: `id`, `created_at`, `stats.file_count`, `stats.bytes`
-  - Uses streaming JSON parsing if needed for large manifests
-  - Handles corrupted/invalid manifest files gracefully (logs and skips)
+  - Reads from summaries (not manifests) for better performance
+- Reads summaries
+  - For each summary file, reads fields: `id`, `created_at`, `hash_algo`, `file_count`, `total_bytes`
+  - Summary files are much smaller than manifests (no `files` array)
+  - Handles corrupted/invalid summary files gracefully (logs and skips)
 - Processes data
   - Converts data to `BundleSummary` format
   - Sorts by `created_at` in descending order (newest first)
   - Ensures consistent ordering for identical timestamps
 - Returns `200` OK with array of bundle summaries
 - Returns empty array `[]` if no bundles exist
+
+**Performance Notes:**
+- List operation reads from `summaries/` directory instead of `manifests/`
+- Summaries exclude the large `files` array, making list operations faster and using less memory
+- Manifests are only read during download operations
 
 ## Side Effects
 

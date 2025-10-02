@@ -5,10 +5,10 @@ from api.tests.helpers import BASE_URL, create_blob, create_bundle
 
 def test_list_bundles_empty():
     """Test listing bundles when none exist."""
-    # Clean up bundles directory
-    bundles_dir = Path(".data") / "bundles"
-    if bundles_dir.exists():
-        for bundle_file in bundles_dir.glob("*.json"):
+    # Clean up bundles summaries directory
+    summaries_dir = Path(".data") / "bundles" / "summaries"
+    if summaries_dir.exists():
+        for bundle_file in summaries_dir.glob("*.json"):
             bundle_file.unlink()
 
     response = requests.get(f"{BASE_URL}/bundles")
@@ -37,7 +37,7 @@ def test_list_bundles_single():
     assert bundle["created_at"] == bundle_data["created_at"]
     assert bundle["hash_algo"] == "sha256"
     assert bundle["file_count"] == 1
-    assert bundle["bytes"] == len(b"test content")
+    assert bundle["total_bytes"] == len(b"test content")
 
 
 def test_list_bundles_multiple():
@@ -63,17 +63,17 @@ def test_list_bundles_multiple():
     # Verify bundle 1
     b1 = next(b for b in bundles if b["id"] == "bundle-list-test-1")
     assert b1["file_count"] == 1
-    assert b1["bytes"] == 5
+    assert b1["total_bytes"] == 5
 
     # Verify bundle 2
     b2 = next(b for b in bundles if b["id"] == "bundle-list-test-2")
     assert b2["file_count"] == 2
-    assert b2["bytes"] == 10
+    assert b2["total_bytes"] == 10
 
     # Verify bundle 3
     b3 = next(b for b in bundles if b["id"] == "bundle-list-test-3")
     assert b3["file_count"] == 1
-    assert b3["bytes"] == 500
+    assert b3["total_bytes"] == 500
 
 
 def test_list_bundles_sorted_by_created_at():
@@ -122,7 +122,7 @@ def test_list_bundles_response_schema():
     assert bundle is not None
 
     # Validate BundleSummary fields
-    required_fields = ["id", "created_at", "hash_algo", "file_count", "bytes"]
+    required_fields = ["id", "created_at", "hash_algo", "file_count", "total_bytes"]
     for field in required_fields:
         assert field in bundle, f"Missing required field: {field}"
 
@@ -131,7 +131,7 @@ def test_list_bundles_response_schema():
     assert isinstance(bundle["created_at"], str)
     assert isinstance(bundle["hash_algo"], str)
     assert isinstance(bundle["file_count"], int)
-    assert isinstance(bundle["bytes"], int)
+    assert isinstance(bundle["total_bytes"], int)
 
     # Should not include files list
     assert "files" not in bundle
@@ -154,7 +154,7 @@ def test_list_bundles_statistics_accuracy():
     bundle = next((b for b in data["bundles"] if b["id"] == "bundle-stats-test"), None)
     assert bundle is not None
     assert bundle["file_count"] == 3
-    assert bundle["bytes"] == 400  # 100 + 250 + 50
+    assert bundle["total_bytes"] == 400  # 100 + 250 + 50
 
 
 def test_list_bundles_empty_bundle():
@@ -168,4 +168,4 @@ def test_list_bundles_empty_bundle():
     bundle = next((b for b in data["bundles"] if b["id"] == "bundle-empty-test"), None)
     assert bundle is not None
     assert bundle["file_count"] == 0
-    assert bundle["bytes"] == 0
+    assert bundle["total_bytes"] == 0

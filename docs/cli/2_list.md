@@ -63,3 +63,14 @@ Allows users to see all available bundles in a readable table format, sorted by 
 - Error case testing (network failures, empty responses)
 - Table formatting tests with various data sizes
 - End-to-end testing with real API server
+
+## Implementation Steps
+
+> This stays pretty much the same for most operations, but it's good to have a record of it.
+
+- Create request schema
+- Create response schema
+- Create pseudo-code tests
+- Create implementation, keep the business logic and pseudo-code in mind
+- Convert pseudo-code tests to actual tests
+- Run tests, fix any issues, repeat until all tests pass

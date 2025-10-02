@@ -30,6 +30,9 @@ pip install -q -r "$PROJECT_ROOT/api/requirements.txt"
 echo "Installing test dependencies..."
 pip install -q -r "$PROJECT_ROOT/api/tests/requirements.txt"
 
+# Create marker file to track last install time
+touch "$VENV_DIR/.last_install"
+
 echo "✓ Setup complete!"
 echo ""
 echo "To activate the virtual environment manually, run:"

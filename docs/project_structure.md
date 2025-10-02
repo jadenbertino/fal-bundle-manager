@@ -70,7 +70,7 @@ Shared code between API and CLI
 ```
 
 
-### ./.data/
+### ./api/.data/
 Runtime data (gitignored)
 
 ```
@@ -78,8 +78,11 @@ Runtime data (gitignored)
 │   └── {aa}/              # Fanout: first 2 hex chars
 │       └── {bb}/          # Fanout: next 2 hex chars
 │           └── {hash}     # Full 64-char SHA-256 hash
-├── bundles/               # Bundle manifests
-│   └── {id}.json          # Bundle manifest files
+├── bundles/               # Bundle metadata
+│   ├── manifests/         # Full bundle manifests (with files list)
+│   │   └── {id}.json      # Complete bundle manifest for downloads
+│   └── summaries/         # Lightweight bundle summaries (without files list)
+│       └── {id}.json      # Bundle summary for list operations
 └── tmp/                   # Temporary upload staging
 ```
 

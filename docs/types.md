@@ -38,10 +38,8 @@ type BundleSummary = {
   id: string,                    // Unique bundle identifier
   created_at: string,            // ISO 8601 timestamp (e.g., `2023-12-25T10:30:00Z`)
   hash_algo: "sha256",           // Hash algorithm used
-  stats: {
-    file_count: number,          // Number of files in bundle
-    bytes: number                // Total size of all files in bytes
-  }
+  file_count: number,            // Number of files in bundle
+  total_bytes: number            // Total size of all files in bytes
 }
 ```
 
