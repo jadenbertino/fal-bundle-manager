@@ -1,8 +1,32 @@
+### Installation
+
+First, install the CLI wrapper:
+
+```bash
+# Default installation to ~/.local/bin
+./cli/install.sh
+
+# Custom wrapper name
+./cli/install.sh --name my-fal-bundles
+
+# Show all options
+./cli/install.sh --help
+```
+
+After installation, you can use the `fal-bundles` command from anywhere:
+
+```bash
+fal-bundles --help
+fal-bundles list
+fal-bundles create <path>
+fal-bundles download <bundle-id>
+```
+
 ### Usage
 
 #### 1. Create
 ```bash
-python -m cli create <path1> [path2 ...]
+fal-bundles create <path1> [path2 ...]
 ```
 
 **Flow**:
@@ -21,7 +45,7 @@ python -m cli create <path1> [path2 ...]
 
 #### 2. List
 ```bash
-python -m cli list
+fal-bundles list
 ```
 
 **Flow**:
@@ -40,7 +64,7 @@ python -m cli list
 
 #### 3. Download
 ```bash
-python -m cli download <bundle_id>
+fal-bundles download <bundle_id>
 ```
 
 **Flow**:
@@ -54,3 +78,32 @@ python -m cli download <bundle_id>
 - 1: Unknown/unsupported format
 - 2: Bundle not found (404)
 - 4: Network/IO errors
+
+### Uninstall
+
+To uninstall the CLI wrapper:
+
+```bash
+# Default uninstall
+./cli/uninstall.sh
+
+# Custom wrapper name
+./cli/uninstall.sh --name my-fal-bundles
+
+# Show help
+./cli/uninstall.sh --help
+```
+
+**Options**:
+- `--name <wrapper_name>`: Name of the wrapper script to remove (default: fal-bundles)
+- `--help, -h`: Show help message
+
+**Flow**:
+1. Parse command line arguments
+2. Check if wrapper script exists at specified location
+3. Remove wrapper script
+4. Display success message
+
+**Exit Codes**:
+- 0: Success
+- 1: Invalid arguments or wrapper not found

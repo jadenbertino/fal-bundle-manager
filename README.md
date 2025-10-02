@@ -12,21 +12,31 @@ A simple system for creating, listing, and downloading resource bundles.
 
 The server will run on http://localhost:8000
 
-### 2. Use the CLI
+### 2. Install the CLI
+
+```bash
+# Install the CLI wrapper
+./cli/install.sh
+
+# Or with custom wrapper name
+./cli/install.sh --name fal-bundles
+```
+
+### 3. Use the CLI
 
 Create a bundle from files or directories:
 ```bash
-python -m cli create path/to/files
+fal-bundles create path/to/files
 ```
 
 List all bundles:
 ```bash
-python -m cli list
+fal-bundles list
 ```
 
 Download a bundle:
 ```bash
-python -m cli download <bundle-id>
+fal-bundles download <bundle-id>
 ```
 
 That's it! The system automatically deduplicates files, so you won't waste storage or bandwidth on files you've already uploaded.
