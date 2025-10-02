@@ -9,14 +9,15 @@ def test_download_bundle_simple():
     """Test downloading a simple bundle with one file."""
     # Create a bundle
     content = b"test file content"
-    bundle_data = create_bundle([(content, "test.txt")], "download-test-simple")
+    bundle_data = create_bundle([(content, "test.txt")])
 
     # Download the bundle
-    response = requests.get(f"{BASE_URL}/bundles/download-test-simple/download")
+    bundle_id = bundle_data["id"]
+    response = requests.get(f"{BASE_URL}/bundles/{bundle_id}/download")
     assert response.status_code == 200
     assert response.headers["Content-Type"] == "application/zip"
     assert "attachment" in response.headers["Content-Disposition"]
-    assert "bundle_download-test-simple.zip" in response.headers["Content-Disposition"]
+    assert f"bundle_{bundle_id}.zip" in response.headers["Content-Disposition"]
 
     # Verify ZIP content
     zip_data = io.BytesIO(response.content)
@@ -32,10 +33,11 @@ def test_download_bundle_multiple_files():
         (b"file2 content", "dir/file2.txt"),
         (b"file3 content", "dir/subdir/file3.txt"),
     ]
-    bundle_data = create_bundle(files_data, "download-test-multiple")
+    bundle_data = create_bundle(files_data)
 
     # Download the bundle
-    response = requests.get(f"{BASE_URL}/bundles/download-test-multiple/download")
+    bundle_id = bundle_data["id"]
+    response = requests.get(f"{BASE_URL}/bundles/{bundle_id}/download")
     assert response.status_code == 200
 
     # Verify ZIP content
@@ -60,9 +62,10 @@ def test_download_bundle_not_found():
 
 def test_download_bundle_empty():
     """Test downloading an empty bundle."""
-    bundle_data = create_bundle([], "download-test-empty")
+    bundle_data = create_bundle([])
 
-    response = requests.get(f"{BASE_URL}/bundles/download-test-empty/download")
+    bundle_id = bundle_data["id"]
+    response = requests.get(f"{BASE_URL}/bundles/{bundle_id}/download")
     assert response.status_code == 200
 
     # Verify ZIP is valid but empty
@@ -73,20 +76,22 @@ def test_download_bundle_empty():
 
 def test_download_bundle_default_format():
     """Test that default format is zip."""
-    bundle_data = create_bundle([(b"test", "file.txt")], "download-test-default")
+    bundle_data = create_bundle([(b"test", "file.txt")])
 
     # Without format parameter
-    response = requests.get(f"{BASE_URL}/bundles/download-test-default/download")
+    bundle_id = bundle_data["id"]
+    response = requests.get(f"{BASE_URL}/bundles/{bundle_id}/download")
     assert response.status_code == 200
     assert response.headers["Content-Type"] == "application/zip"
 
 
 def test_download_bundle_explicit_zip_format():
     """Test downloading with explicit zip format parameter."""
-    bundle_data = create_bundle([(b"test", "file.txt")], "download-test-explicit-zip")
+    bundle_data = create_bundle([(b"test", "file.txt")])
 
+    bundle_id = bundle_data["id"]
     response = requests.get(
-        f"{BASE_URL}/bundles/download-test-explicit-zip/download",
+        f"{BASE_URL}/bundles/{bundle_id}/download",
         params={"format": "zip"}
     )
     assert response.status_code == 200
@@ -95,10 +100,11 @@ def test_download_bundle_explicit_zip_format():
 
 def test_download_bundle_unsupported_format():
     """Test that unsupported format returns 415."""
-    bundle_data = create_bundle([(b"test", "file.txt")], "download-test-unsupported")
+    bundle_data = create_bundle([(b"test", "file.txt")])
 
+    bundle_id = bundle_data["id"]
     response = requests.get(
-        f"{BASE_URL}/bundles/download-test-unsupported/download",
+        f"{BASE_URL}/bundles/{bundle_id}/download",
         params={"format": "tar"}
     )
     assert response.status_code == 415
@@ -112,9 +118,10 @@ def test_download_bundle_large_files():
         (large_content, "large1.bin"),
         (large_content, "large2.bin"),
     ]
-    bundle_data = create_bundle(files_data, "download-test-large")
+    bundle_data = create_bundle(files_data)
 
-    response = requests.get(f"{BASE_URL}/bundles/download-test-large/download")
+    bundle_id = bundle_data["id"]
+    response = requests.get(f"{BASE_URL}/bundles/{bundle_id}/download")
     assert response.status_code == 200
 
     # Verify ZIP content
@@ -131,9 +138,10 @@ def test_download_bundle_preserves_paths():
         (b"nested1", "a/b/c/file1.txt"),
         (b"nested2", "x/y/file2.txt"),
     ]
-    bundle_data = create_bundle(files_data, "download-test-paths")
+    bundle_data = create_bundle(files_data)
 
-    response = requests.get(f"{BASE_URL}/bundles/download-test-paths/download")
+    bundle_id = bundle_data["id"]
+    response = requests.get(f"{BASE_URL}/bundles/{bundle_id}/download")
     assert response.status_code == 200
 
     zip_data = io.BytesIO(response.content)
@@ -149,12 +157,14 @@ def test_download_bundle_deduplication():
     # Create two bundles that share a blob
     shared_content = b"shared content"
 
-    bundle1 = create_bundle([(shared_content, "file1.txt")], "download-dedup-1")
-    bundle2 = create_bundle([(shared_content, "file2.txt")], "download-dedup-2")
+    bundle1 = create_bundle([(shared_content, "file1.txt")])
+    bundle2 = create_bundle([(shared_content, "file2.txt")])
 
     # Download both bundles
-    response1 = requests.get(f"{BASE_URL}/bundles/download-dedup-1/download")
-    response2 = requests.get(f"{BASE_URL}/bundles/download-dedup-2/download")
+    bundle1_id = bundle1["id"]
+    bundle2_id = bundle2["id"]
+    response1 = requests.get(f"{BASE_URL}/bundles/{bundle1_id}/download")
+    response2 = requests.get(f"{BASE_URL}/bundles/{bundle2_id}/download")
 
     assert response1.status_code == 200
     assert response2.status_code == 200
@@ -177,9 +187,10 @@ def test_download_bundle_special_characters_in_filename():
         (b"content2", "file-with-dashes.txt"),
         (b"content3", "file_with_underscores.txt"),
     ]
-    bundle_data = create_bundle(files_data, "download-test-special")
+    bundle_data = create_bundle(files_data)
 
-    response = requests.get(f"{BASE_URL}/bundles/download-test-special/download")
+    bundle_id = bundle_data["id"]
+    response = requests.get(f"{BASE_URL}/bundles/{bundle_id}/download")
     assert response.status_code == 200
 
     zip_data = io.BytesIO(response.content)

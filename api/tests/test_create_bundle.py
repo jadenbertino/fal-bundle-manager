@@ -1,7 +1,10 @@
+import hashlib
 import requests
 import json
 from pathlib import Path
 from api.tests.helpers import BASE_URL, create_blob
+from shared.merkle import compute_merkle_root
+from shared.types import Blob
 
 
 def test_create_bundle_simple():
@@ -9,6 +12,15 @@ def test_create_bundle_simple():
     # Create a blob
     content = b"test file content"
     hash_val = create_blob(content)
+
+    # Create blob object for merkle root computation
+    blob = Blob(
+        bundle_path="test.txt",
+        size_bytes=len(content),
+        hash=hash_val,
+        hash_algo="sha256"
+    )
+    merkle_root = compute_merkle_root([blob])
 
     # Create bundle
     response = requests.post(
@@ -22,20 +34,34 @@ def test_create_bundle_simple():
                     "hash_algo": "sha256"
                 }
             ],
-            "hash_algo": "sha256"
+            "hash_algo": "sha256",
+            "merkle_root": merkle_root
         }
     )
     assert response.status_code == 201
     data = response.json()
     assert "id" in data
     assert "created_at" in data
+    assert "merkle_root" in data
 
     # Verify manifest and summary files exist
     bundle_id = data["id"]
-    manifest_path = Path(".data") / "bundles" / "manifests" / f"{bundle_id}.json"
-    summary_path = Path(".data") / "bundles" / "summaries" / f"{bundle_id}.json"
+    manifest_path = Path("api/.data") / "bundles" / "manifests" / f"{bundle_id}.json"
+    summary_path = Path("api/.data") / "bundles" / "summaries" / f"{bundle_id}.json"
     assert manifest_path.exists()
     assert summary_path.exists()
+
+    expected_root = compute_merkle_root(
+        [
+            Blob(
+                bundle_path="test.txt",
+                size_bytes=len(content),
+                hash=hash_val,
+                hash_algo="sha256",
+            )
+        ]
+    )
+    assert data["merkle_root"] == expected_root
 
     # Verify manifest content (includes files)
     manifest = json.loads(manifest_path.read_text())
@@ -45,6 +71,7 @@ def test_create_bundle_simple():
     assert manifest["files"][0]["hash"] == hash_val
     assert manifest["file_count"] == 1
     assert manifest["total_bytes"] == len(content)
+    assert manifest["merkle_root"] == expected_root
 
     # Verify summary content (does NOT include files)
     summary = json.loads(summary_path.read_text())
@@ -53,6 +80,7 @@ def test_create_bundle_simple():
     assert "files" not in summary
     assert summary["file_count"] == 1
     assert summary["total_bytes"] == len(content)
+    assert summary["merkle_root"] == expected_root
 
 
 def test_create_bundle_multiple_files():
@@ -65,6 +93,7 @@ def test_create_bundle_multiple_files():
     ]
 
     files_payload = []
+    blobs = []
     total_bytes = 0
     for content, path in files_data:
         hash_val = create_blob(content)
@@ -74,93 +103,57 @@ def test_create_bundle_multiple_files():
             "hash": hash_val,
             "hash_algo": "sha256"
         })
+        blobs.append(
+            Blob(
+                bundle_path=path,
+                size_bytes=len(content),
+                hash=hash_val,
+                hash_algo="sha256",
+            )
+        )
         total_bytes += len(content)
 
+    # Compute merkle root
+    merkle_root = compute_merkle_root(blobs)
+    
     # Create bundle
     response = requests.post(
         f"{BASE_URL}/bundles",
-        json={"files": files_payload, "hash_algo": "sha256"}
+        json={"files": files_payload, "hash_algo": "sha256", "merkle_root": merkle_root}
     )
     assert response.status_code == 201
     data = response.json()
+    expected_root = compute_merkle_root(blobs)
+    assert data["merkle_root"] == expected_root
 
     # Verify manifest and summary
-    manifest_path = Path(".data") / "bundles" / "manifests" / f"{data['id']}.json"
-    summary_path = Path(".data") / "bundles" / "summaries" / f"{data['id']}.json"
+    manifest_path = Path("api/.data") / "bundles" / "manifests" / f"{data['id']}.json"
+    summary_path = Path("api/.data") / "bundles" / "summaries" / f"{data['id']}.json"
 
     manifest = json.loads(manifest_path.read_text())
     assert manifest["file_count"] == 3
     assert manifest["total_bytes"] == total_bytes
+    assert manifest["merkle_root"] == expected_root
 
     summary = json.loads(summary_path.read_text())
     assert summary["file_count"] == 3
     assert summary["total_bytes"] == total_bytes
     assert "files" not in summary
-
-
-def test_create_bundle_with_client_id():
-    """Test creating a bundle with client-provided ID."""
-    content = b"test content"
-    hash_val = create_blob(content)
-
-    client_id = "my-custom-bundle-id"
-    response = requests.post(
-        f"{BASE_URL}/bundles",
-        json={
-            "id": client_id,
-            "files": [
-                {
-                    "bundle_path": "file.txt",
-                    "size_bytes": len(content),
-                    "hash": hash_val,
-                    "hash_algo": "sha256"
-                }
-            ],
-            "hash_algo": "sha256"
-        }
-    )
-    assert response.status_code == 201
-    data = response.json()
-    assert data["id"] == client_id
-
-    # Verify manifest and summary exist with custom ID
-    manifest_path = Path(".data") / "bundles" / "manifests" / f"{client_id}.json"
-    summary_path = Path(".data") / "bundles" / "summaries" / f"{client_id}.json"
-    assert manifest_path.exists()
-    assert summary_path.exists()
-
-
-def test_create_bundle_duplicate_id_conflict():
-    """Test that duplicate client-provided ID returns 409."""
-    content = b"test content"
-    hash_val = create_blob(content)
-
-    client_id = "duplicate-test-id"
-    payload = {
-        "id": client_id,
-        "files": [
-            {
-                "bundle_path": "file.txt",
-                "size_bytes": len(content),
-                "hash": hash_val,
-                "hash_algo": "sha256"
-            }
-        ],
-        "hash_algo": "sha256"
-    }
-
-    # First creation should succeed
-    response1 = requests.post(f"{BASE_URL}/bundles", json=payload)
-    assert response1.status_code == 201
-
-    # Second creation with same ID should fail
-    response2 = requests.post(f"{BASE_URL}/bundles", json=payload)
-    assert response2.status_code == 409
+    assert summary["merkle_root"] == expected_root
 
 
 def test_create_bundle_missing_blob():
     """Test that referencing non-existent blob returns 409."""
     fake_hash = "a" * 64
+
+    # Create blob object for merkle root computation (even though blob doesn't exist)
+    blob = Blob(
+        bundle_path="file.txt",
+        size_bytes=100,
+        hash=fake_hash,
+        hash_algo="sha256"
+    )
+    merkle_root = compute_merkle_root([blob])
 
     response = requests.post(
         f"{BASE_URL}/bundles",
@@ -173,7 +166,8 @@ def test_create_bundle_missing_blob():
                     "hash_algo": "sha256"
                 }
             ],
-            "hash_algo": "sha256"
+            "hash_algo": "sha256",
+            "merkle_root": merkle_root
         }
     )
     assert response.status_code == 409
@@ -294,29 +288,38 @@ def test_create_bundle_negative_size():
 
 def test_create_bundle_empty_files():
     """Test creating a bundle with no files."""
+    # Compute merkle root for empty files
+    merkle_root = compute_merkle_root([])
+    
     response = requests.post(
         f"{BASE_URL}/bundles",
         json={
             "files": [],
-            "hash_algo": "sha256"
+            "hash_algo": "sha256",
+            "merkle_root": merkle_root
         }
     )
     assert response.status_code == 201
     data = response.json()
+    assert "merkle_root" in data
+    expected_root = compute_merkle_root([])
+    assert data["merkle_root"] == expected_root
 
     # Verify manifest and summary
     bundle_id = data["id"]
-    manifest_path = Path(".data") / "bundles" / "manifests" / f"{bundle_id}.json"
-    summary_path = Path(".data") / "bundles" / "summaries" / f"{bundle_id}.json"
+    manifest_path = Path("api/.data") / "bundles" / "manifests" / f"{bundle_id}.json"
+    summary_path = Path("api/.data") / "bundles" / "summaries" / f"{bundle_id}.json"
 
     manifest = json.loads(manifest_path.read_text())
     assert manifest["file_count"] == 0
     assert manifest["total_bytes"] == 0
+    assert manifest["merkle_root"] == expected_root
 
     summary = json.loads(summary_path.read_text())
     assert summary["file_count"] == 0
     assert summary["total_bytes"] == 0
     assert "files" not in summary
+    assert summary["merkle_root"] == expected_root
 
 
 def test_create_bundle_statistics():
@@ -328,6 +331,7 @@ def test_create_bundle_statistics():
     ]
 
     files_payload = []
+    blobs = []
     expected_total = 0
     for content, path in files_data:
         hash_val = create_blob(content)
@@ -338,24 +342,99 @@ def test_create_bundle_statistics():
             "hash_algo": "sha256"
         })
         expected_total += len(content)
+        blobs.append(
+            Blob(
+                bundle_path=path,
+                size_bytes=len(content),
+                hash=hash_val,
+                hash_algo="sha256",
+            )
+        )
 
+    # Compute merkle root
+    merkle_root = compute_merkle_root(blobs)
+    
     response = requests.post(
         f"{BASE_URL}/bundles",
-        json={"files": files_payload, "hash_algo": "sha256"}
+        json={"files": files_payload, "hash_algo": "sha256", "merkle_root": merkle_root}
     )
     assert response.status_code == 201
 
     # Verify statistics
     bundle_id = response.json()['id']
-    manifest_path = Path(".data") / "bundles" / "manifests" / f"{bundle_id}.json"
-    summary_path = Path(".data") / "bundles" / "summaries" / f"{bundle_id}.json"
+    expected_root = compute_merkle_root(blobs)
+    manifest_path = Path("api/.data") / "bundles" / "manifests" / f"{bundle_id}.json"
+    summary_path = Path("api/.data") / "bundles" / "summaries" / f"{bundle_id}.json"
 
     manifest = json.loads(manifest_path.read_text())
     assert manifest["file_count"] == 3
     assert manifest["total_bytes"] == expected_total
     assert manifest["total_bytes"] == 400  # 100 + 250 + 50
+    assert manifest["merkle_root"] == expected_root
 
     summary = json.loads(summary_path.read_text())
     assert summary["file_count"] == 3
     assert summary["total_bytes"] == expected_total
     assert "files" not in summary
+    assert summary["merkle_root"] == expected_root
+
+
+def test_compute_merkle_root_manual_calculation():
+    """Manually compute the Merkle root to validate the helper implementation."""
+
+    blobs = [
+        Blob(bundle_path="a.txt", size_bytes=1, hash="a" * 64, hash_algo="sha256"),
+        Blob(bundle_path="b.txt", size_bytes=1, hash="b" * 64, hash_algo="sha256"),
+        Blob(bundle_path="c.txt", size_bytes=1, hash="c" * 64, hash_algo="sha256"),
+    ]
+
+    result = compute_merkle_root(blobs)
+
+    leaf_a = hashlib.sha256(f"a.txt:{'a' * 64}".encode()).digest()
+    leaf_b = hashlib.sha256(f"b.txt:{'b' * 64}".encode()).digest()
+    leaf_c = hashlib.sha256(f"c.txt:{'c' * 64}".encode()).digest()
+
+    level_left = hashlib.sha256(leaf_a + leaf_b).digest()
+    level_right = hashlib.sha256(leaf_c + leaf_c).digest()
+    expected_root = hashlib.sha256(level_left + level_right).hexdigest()
+
+    assert result == expected_root
+    assert len(result) == 64
+
+
+def test_create_bundle_response_merkle_root_matches_manual():
+    """Ensure create bundle response returns the Merkle root computed on the client."""
+
+    files = [
+        (b"alpha", "dir/a.txt"),
+        (b"beta", "dir/b.txt"),
+    ]
+
+    payload_files = []
+    for content, path in files:
+        hash_val = create_blob(content)
+        payload_files.append({
+            "bundle_path": path,
+            "size_bytes": len(content),
+            "hash": hash_val,
+            "hash_algo": "sha256",
+        })
+
+    manual_leaves = []
+    for path, hash_val in sorted((f["bundle_path"], f["hash"]) for f in payload_files):
+        manual_leaves.append(hashlib.sha256(f"{path}:{hash_val}".encode()).digest())
+
+    manual_root = hashlib.sha256(manual_leaves[0] + manual_leaves[1]).hexdigest()
+
+    response = requests.post(
+        f"{BASE_URL}/bundles",
+        json={"files": payload_files, "hash_algo": "sha256", "merkle_root": manual_root},
+    )
+    assert response.status_code == 201
+    data = response.json()
+
+    assert data["merkle_root"] == manual_root
+
+    summary_path = Path("api/.data") / "bundles" / "summaries" / f"{data['id']}.json"
+    summary = json.loads(summary_path.read_text())
+    assert summary["merkle_root"] == manual_root

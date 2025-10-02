@@ -23,7 +23,7 @@ async def create_bundle(request: BundleManifestDraft):
     All referenced blobs must already exist in storage.
 
     Args:
-        request: BundleManifestDraft containing files array and optional ID
+        request: BundleManifestDraft containing files array and merkle_root
 
     Returns:
         BundleCreateResponse with bundle ID and creation timestamp
@@ -31,7 +31,7 @@ async def create_bundle(request: BundleManifestDraft):
     Raises:
         HTTPException:
             - 400: Invalid schema, duplicate paths
-            - 409: Missing blobs, duplicate bundle ID
+            - 409: Missing blobs, merkle root mismatch
             - 500: Storage write failure
     """
     try:
@@ -46,20 +46,8 @@ async def create_bundle(request: BundleManifestDraft):
                 detail=f"Missing blobs: {', '.join(missing_hashes)}"
             )
 
-        # Generate or validate bundle ID
-        if request.id:
-            bundle_id = request.id
-            # Check for ID collision
-            manifests_dir = get_bundle_manifests_dir()
-            manifest_path = manifests_dir / f"{bundle_id}.json"
-            if manifest_path.exists():
-                raise HTTPException(
-                    status_code=409,
-                    detail=f"Bundle ID '{bundle_id}' already exists"
-                )
-        else:
-            # Generate ULID for time-ordered unique ID
-            bundle_id = str(ULID())
+        # Generate bundle ID
+        bundle_id = str(ULID())
 
         # Calculate statistics
         file_count = len(request.files)

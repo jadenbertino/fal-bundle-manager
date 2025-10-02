@@ -24,11 +24,11 @@
 - For more details, see [docs/api/3_create_bundle.md](./3_create_bundle.md)
 - **Route**: `POST /bundles`
 - **Purpose**: Create a bundle from uploaded blobs
-- **Request**: `BundleManifestDraft` (files array, optional id)
+- **Request**: `BundleManifestDraft` (files array, merkle_root)
 - **Response**: Bundle id, created_at timestamp, and Merkle root
 - **Details**:
   - Validates all referenced blobs exist
-  - Generates ULID for bundle id if not provided
+  - Generates ULID for bundle id automatically
   - Computes and persists `merkle_root` alongside manifest and summary JSON
 
 #### 4. List Bundles

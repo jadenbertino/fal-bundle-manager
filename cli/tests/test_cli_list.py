@@ -25,21 +25,24 @@ def sample_bundles():
                 created_at="2023-12-25T10:30:00Z",
                 hash_algo="sha256",
                 file_count=5,
-                total_bytes=1024
+                total_bytes=1024,
+                merkle_root="a" * 64,
             ),
             BundleSummary(
                 id="01K6GZ3GMJYRAJZ60JD178HT6T",
                 created_at="2023-12-24T15:20:00Z",
                 hash_algo="sha256",
                 file_count=3,
-                total_bytes=2048000
+                total_bytes=2048000,
+                merkle_root="b" * 64,
             ),
             BundleSummary(
                 id="01K6GZ3Q2CSWDDC52XK6ZQN15F",
                 created_at="2023-12-23T08:45:00Z",
                 hash_algo="sha256",
                 file_count=10,
-                total_bytes=500000000
+                total_bytes=500000000,
+                merkle_root="c" * 64,
             ),
         ]
     )
@@ -62,9 +65,13 @@ def test_list_bundles_success(runner, sample_bundles):
         assert "Files" in result.output
         assert "Total Size" in result.output
         assert "Created" in result.output
+        assert "Merkle Root" in result.output
         assert "01K6GZ396JT9343XTQ89G69Y3W" in result.output
         assert "01K6GZ3GMJYRAJZ60JD178HT6T" in result.output
         assert "01K6GZ3Q2CSWDDC52XK6ZQN15F" in result.output
+        assert "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" in result.output
+        assert "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" in result.output
+        assert "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc" in result.output
 
 
 def test_list_bundles_empty(runner):

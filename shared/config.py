@@ -10,7 +10,7 @@ from pathlib import Path
 
 def get_data_dir() -> Path:
     """Get the data directory path (dynamically reads from env)."""
-    return Path(os.getenv("DATA_DIR", "./data"))
+    return Path(os.getenv("DATA_DIR", "api/.data"))
 
 
 def get_blobs_dir() -> Path:

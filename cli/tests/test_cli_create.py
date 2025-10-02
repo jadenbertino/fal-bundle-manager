@@ -11,6 +11,25 @@ from shared.api_contracts.preflight import PreflightResponse
 from shared.api_contracts.create_bundle import BundleCreateResponse
 
 
+DEFAULT_BUNDLE_ID = "test-bundle-123"
+DEFAULT_CREATED_AT = "2024-01-01T00:00:00Z"
+DEFAULT_MERKLE = "d" * 64
+
+
+def expected_create_output(
+    bundle_id: str = DEFAULT_BUNDLE_ID,
+    created_at: str = DEFAULT_CREATED_AT,
+    merkle: str = DEFAULT_MERKLE,
+) -> str:
+    """Construct the expected multi-line success message."""
+    return (
+        "Created bundle:\n"
+        f"- ID: {bundle_id}\n"
+        f"- Created: {created_at}\n"
+        f"- Merkle: {merkle}"
+    )
+
+
 @pytest.fixture
 def runner():
     """Create a CliRunner instance."""
@@ -24,8 +43,9 @@ def mock_api_client():
     mock.preflight.return_value = PreflightResponse(missing=[])
     mock.upload_blob.return_value = True
     mock.create_bundle.return_value = BundleCreateResponse(
-        id="test-bundle-123",
-        created_at="2024-01-01T00:00:00Z"
+        id=DEFAULT_BUNDLE_ID,
+        created_at=DEFAULT_CREATED_AT,
+        merkle_root=DEFAULT_MERKLE,
     )
     return mock
 
@@ -52,7 +72,8 @@ class TestCreateSuccess:
 
             # Assertions
             assert result.exit_code == 0
-            assert 'Created bundle: test-bundle-123' in result.output
+            expected = expected_create_output()
+            assert result.output.strip() == expected
             assert mock_api_client.preflight.called
             assert mock_api_client.create_bundle.called
 
@@ -75,7 +96,8 @@ class TestCreateSuccess:
 
             # Assertions
             assert result.exit_code == 0
-            assert 'Created bundle: test-bundle-123' in result.output
+            expected = expected_create_output()
+            assert result.output.strip() == expected
 
     @patch('cli.commands.create.BundlesAPIClient')
     def test_create_with_multiple_paths(self, mock_client_class, runner, mock_api_client):
@@ -98,7 +120,8 @@ class TestCreateSuccess:
 
             # Assertions
             assert result.exit_code == 0
-            assert 'Created bundle: test-bundle-123' in result.output
+            expected = expected_create_output()
+            assert result.output.strip() == expected
 
     @patch('cli.commands.create.BundlesAPIClient')
     def test_create_outputs_bundle_id(self, mock_client_class, runner, mock_api_client):
@@ -112,8 +135,8 @@ class TestCreateSuccess:
             result = runner.invoke(cli, ['create', 'test.txt'])
 
             # Check output format
-            assert 'Created bundle:' in result.output
-            assert 'test-bundle-123' in result.output
+            expected = expected_create_output()
+            assert result.output.strip() == expected
 
 
 # ============================================================================
@@ -231,7 +254,8 @@ class TestCreateOutputFormat:
 
             # Check exact format
             assert result.exit_code == 0
-            assert result.output.strip() == 'Created bundle: test-bundle-123'
+            expected = expected_create_output()
+            assert result.output.strip() == expected
 
 
 # ============================================================================

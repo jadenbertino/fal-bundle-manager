@@ -1,6 +1,6 @@
 """API contracts for create bundle endpoint."""
 
-from typing import Literal, Optional
+from typing import Literal
 from pydantic import BaseModel, Field, field_validator
 from shared.types import Blob
 from shared.validation import validate_sha256_hash
@@ -9,7 +9,6 @@ from shared.validation import validate_sha256_hash
 class BundleManifestDraft(BaseModel):
     """Request schema for creating a bundle."""
 
-    id: Optional[str] = Field(None, description="Optional client-provided bundle ID")
     files: list[Blob] = Field(..., description="Array of Blob objects")
     hash_algo: Literal["sha256"] = Field(..., description="Hash algorithm (must be sha256)")
     merkle_root: str = Field(..., description="Merkle root over bundle files")
