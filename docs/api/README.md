@@ -1,5 +1,4 @@
-
-### Endpoints
+# Endpoints
 
 #### 1. Preflight Check
 - For more details, see [docs/api/1_preflight.md](./1_preflight.md)

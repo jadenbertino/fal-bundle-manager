@@ -40,7 +40,7 @@ python -m cli list
 
 #### 3. Download
 ```bash
-python -m cli download <bundle_id> [--format zip]
+python -m cli download <bundle_id>
 ```
 
 **Flow**:
