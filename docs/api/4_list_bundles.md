@@ -23,6 +23,7 @@ Allows clients to retrieve a list of all available bundles with basic metadata, 
   - For each summary file, reads fields: `id`, `created_at`, `hash_algo`, `file_count`, `total_bytes`
   - Summary files are much smaller than manifests (no `files` array)
   - Handles corrupted/invalid summary files gracefully (logs and skips)
+  - Backfills `merkle_root` from manifest if missing to maintain compatibility
 - Processes data
   - Converts data to `BundleSummary` format
   - Sorts by `created_at` in descending order (newest first)

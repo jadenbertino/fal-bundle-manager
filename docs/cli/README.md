@@ -26,7 +26,7 @@ python -m cli list
 
 **Flow**:
 1. Call list bundles API
-2. Format as table with columns: ID, Files, Total Size, Created
+2. Format as table with columns: ID, Files, Total Size, Created, Merkle Root
 3. Display to stdout
 
 **Format**:

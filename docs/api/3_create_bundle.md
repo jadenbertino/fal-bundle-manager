@@ -45,10 +45,11 @@ Allows clients to create a bundle from already-uploaded blobs, generating a mani
 - Computes statistics
   - Calculates `file_count` (length of files array)
   - Sums `size_bytes` for all files to get `total_bytes`
+  - Computes `merkle_root` by hashing sorted `"{bundle_path}:{hash}"` pairs into a Merkle tree
 - Stores bundle data
-  - Creates complete `BundleManifest` object with id, created_at (ISO-8601), hash_algo, files, file_count, and total_bytes
+  - Creates complete `BundleManifest` object with id, created_at (ISO-8601), hash_algo, files, file_count, total_bytes, and merkle_root
   - Writes **manifest** as JSON to `api/.data/bundles/manifests/{id}.json` (includes `files` array)
-  - Writes **summary** as JSON to `api/.data/bundles/summaries/{id}.json` (excludes `files` array for efficiency)
+  - Writes **summary** as JSON to `api/.data/bundles/summaries/{id}.json` (excludes `files` array for efficiency but retains `merkle_root`)
   - Ensures atomic write operation for both files
 - Returns `201` Created with bundle metadata
 
@@ -63,7 +64,8 @@ Allows clients to create a bundle from already-uploaded blobs, generating a mani
   ```typescript
   type BundleCreateResponse = {
     id: string,           // Unique bundle identifier (ULID if auto-generated)
-    created_at: string    // ISO 8601 timestamp (e.g., `2023-12-25T10:30:00Z`)
+    created_at: string,   // ISO 8601 timestamp (e.g., `2023-12-25T10:30:00Z`)
+    merkle_root: string   // SHA-256 Merkle root over bundle contents
   }
   ```
 

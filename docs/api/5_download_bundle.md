@@ -22,12 +22,13 @@ Allows clients to download a complete bundle as a streaming archive file with al
   - Validates bundle ID format
   - Checks if bundle manifest exists at `.data/bundles/{id}.json`
   - Loads and parses bundle manifest
-  - Validates manifest structure
+  - Validates manifest structure (including `merkle_root` field)
   - Validates requested format against supported formats (currently "zip" only); throws `415` if unsupported
 - Collects blobs
   - For each file in bundle manifest, verifies blob exists at `.data/blobs/{first2chars}/{next2chars}/{fullhash}`
   - Collects blob file path and bundle path mapping
   - Fails with `500` if any required blobs are missing
+  - Optionally recomputes `merkle_root` for integrity checks before streaming
 - Generates archive
   - Uses streaming ZIP generation with Python `zipfile`
   - Adds each blob to archive with correct bundle path
