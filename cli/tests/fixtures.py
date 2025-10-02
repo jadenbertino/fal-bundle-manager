@@ -12,6 +12,7 @@ FIXTURE_FILES = {
     "empty": FIXTURES_DIR / "empty.txt",
     "large": FIXTURES_DIR / "large.bin",
     "readme": FIXTURES_DIR / "README.txt",
+    "single_file": FIXTURES_DIR / "single_file.txt",
 }
 
 # Directories
@@ -20,6 +21,7 @@ FIXTURE_DIRS = {
     "models": FIXTURES_DIR / "models",
     "nested": FIXTURES_DIR / "nested",
     "empty_dir": FIXTURES_DIR / "empty_dir",
+    "test_dir": FIXTURES_DIR / "test_dir",
     "root": FIXTURES_DIR,
 }
 

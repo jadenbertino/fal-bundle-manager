@@ -49,37 +49,36 @@ class TestIntegrationWorkflow:
     @patch('cli.commands.download.BundlesAPIClient')
     def test_complete_workflow_single_file(self, mock_download_client, mock_list_client, mock_create_client, runner):
         """Test complete workflow: create -> list -> download -> verify."""
-        with runner.isolated_filesystem():
-            # Create test file
-            test_file = Path("test.txt")
-            test_file.write_text("Hello, World!")
-            
-            # Compute expected merkle root
-            content = "Hello, World!"
-            content_bytes = content.encode('utf-8')
-            file_hash = hashlib.sha256(content_bytes).hexdigest()
-            
-            blob = Blob(
-                bundle_path="test.txt",
-                size_bytes=len(content_bytes),
-                hash=file_hash,
-                hash_algo="sha256"
-            )
-            expected_merkle = compute_merkle_root([blob])
-            
-            # Setup create mock
-            mock_create_api = Mock()
-            mock_create_api.preflight.return_value = PreflightResponse(missing=[])
-            mock_create_api.upload_blob.return_value = True
-            mock_create_api.create_bundle.return_value = BundleCreateResponse(
-                id="01HQZX123ABC456DEF789GHI",
-                created_at="2024-01-15T10:30:00Z",
-                merkle_root=expected_merkle
-            )
-            mock_create_client.return_value = mock_create_api
-            
-            # 1. Create bundle
-            result = runner.invoke(cli, ['create', 'test.txt'])
+        # Use real fixture file
+        from cli.tests.fixtures import get_fixture_path
+        test_file = get_fixture_path("single_file")
+        
+        # Compute expected merkle root from real file
+        with open(test_file, 'rb') as f:
+            content_bytes = f.read()
+        file_hash = hashlib.sha256(content_bytes).hexdigest()
+        
+        blob = Blob(
+            bundle_path=test_file.name,
+            size_bytes=len(content_bytes),
+            hash=file_hash,
+            hash_algo="sha256"
+        )
+        expected_merkle = compute_merkle_root([blob])
+        
+        # Setup create mock
+        mock_create_api = Mock()
+        mock_create_api.preflight.return_value = PreflightResponse(missing=[])
+        mock_create_api.upload_blob.return_value = True
+        mock_create_api.create_bundle.return_value = BundleCreateResponse(
+            id="01HQZX123ABC456DEF789GHI",
+            created_at="2024-01-15T10:30:00Z",
+            merkle_root=expected_merkle
+        )
+        mock_create_client.return_value = mock_create_api
+        
+        # 1. Create bundle
+        result = runner.invoke(cli, ['create', str(test_file)])
             assert result.exit_code == 0
             assert "Created bundle:" in result.output
             assert "01HQZX123ABC456DEF789GHI" in result.output

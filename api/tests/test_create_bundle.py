@@ -9,13 +9,16 @@ from shared.types import Blob
 
 def test_create_bundle_simple():
     """Test creating a simple bundle with one file."""
-    # Create a blob
-    content = b"test file content"
+    # Use real fixture file content
+    from pathlib import Path
+    fixture_file = Path("fixtures/test_data/single_file.txt")
+    with open(fixture_file, 'rb') as f:
+        content = f.read()
     hash_val = create_blob(content)
 
     # Create blob object for merkle root computation
     blob = Blob(
-        bundle_path="test.txt",
+        bundle_path="single_file.txt",
         size_bytes=len(content),
         hash=hash_val,
         hash_algo="sha256"
@@ -28,7 +31,7 @@ def test_create_bundle_simple():
         json={
             "files": [
                 {
-                    "bundle_path": "test.txt",
+                    "bundle_path": "single_file.txt",
                     "size_bytes": len(content),
                     "hash": hash_val,
                     "hash_algo": "sha256"
@@ -54,7 +57,7 @@ def test_create_bundle_simple():
     expected_root = compute_merkle_root(
         [
             Blob(
-                bundle_path="test.txt",
+                bundle_path="single_file.txt",
                 size_bytes=len(content),
                 hash=hash_val,
                 hash_algo="sha256",
