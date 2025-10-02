@@ -1,10 +1,10 @@
 #!/bin/bash
 # Install fal-bundles CLI wrapper
 # 
-# Usage: ./install.sh [--dir <directory>] [--name <wrapper_name>]
+# Usage: ./install.sh [--name <wrapper_name>]
 # 
 # This script creates a wrapper script that references run.sh for the fal-bundles CLI.
-# The wrapper is installed to ~/.local/bin by default, or to the specified directory.
+# The wrapper is installed to ~/.local/bin by default.
 # The wrapper handles environment setup and dependency management via run.sh.
 
 set -e
@@ -20,19 +20,14 @@ WRAPPER_NAME="fal-bundles"
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
     case $1 in
-        --dir)
-            INSTALL_DIR="$2"
-            shift 2
-            ;;
         --name)
             WRAPPER_NAME="$2"
             shift 2
             ;;
         --help|-h)
-            echo "Usage: $0 [--dir <directory>] [--name <wrapper_name>]"
+            echo "Usage: $0 [--name <wrapper_name>]"
             echo ""
             echo "Options:"
-            echo "  --dir <directory>    Installation directory (default: ~/.local/bin)"
             echo "  --name <name>        Wrapper script name (default: fal-bundles)"
             echo "  --help, -h           Show this help message"
             exit 0

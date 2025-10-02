@@ -6,9 +6,6 @@ First, install the CLI wrapper:
 # Default installation to ~/.local/bin
 ./cli/install.sh
 
-# Custom installation directory
-./cli/install.sh --dir /usr/local/bin
-
 # Custom wrapper name
 ./cli/install.sh --name my-fal-bundles
 
@@ -90,15 +87,14 @@ To uninstall the CLI wrapper:
 # Default uninstall
 ./cli/uninstall.sh
 
-# Custom directory and name
-./cli/uninstall.sh --dir /usr/local/bin --name my-fal-bundles
+# Custom wrapper name
+./cli/uninstall.sh --name my-fal-bundles
 
 # Show help
 ./cli/uninstall.sh --help
 ```
 
 **Options**:
-- `--dir <directory>`: Installation directory to uninstall from (default: ~/.local/bin)
 - `--name <wrapper_name>`: Name of the wrapper script to remove (default: fal-bundles)
 - `--help, -h`: Show help message
 

@@ -10,19 +10,14 @@ WRAPPER_NAME="fal-bundles"
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
     case $1 in
-        --dir)
-            INSTALL_DIR="$2"
-            shift 2
-            ;;
         --name)
             WRAPPER_NAME="$2"
             shift 2
             ;;
         --help|-h)
-            echo "Usage: $0 [--dir <directory>] [--name <wrapper_name>]"
+            echo "Usage: $0 [--name <wrapper_name>]"
             echo ""
             echo "Options:"
-            echo "  --dir <directory>    Installation directory to uninstall from (default: ~/.local/bin)"
             echo "  --name <name>        Wrapper script name to remove (default: fal-bundles)"
             echo "  --help, -h           Show this help message"
             exit 0

@@ -18,8 +18,8 @@ The server will run on http://localhost:8000
 # Install the CLI wrapper
 ./cli/install.sh
 
-# Or with custom options
-./cli/install.sh --dir /usr/local/bin --name fal-bundles
+# Or with custom wrapper name
+./cli/install.sh --name fal-bundles
 ```
 
 ### 3. Use the CLI
