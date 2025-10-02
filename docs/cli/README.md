@@ -1,8 +1,35 @@
+### Installation
+
+First, install the CLI wrapper:
+
+```bash
+# Default installation to ~/.local/bin
+./cli/install.sh
+
+# Custom installation directory
+./cli/install.sh --dir /usr/local/bin
+
+# Custom wrapper name
+./cli/install.sh --name my-fal-bundles
+
+# Show all options
+./cli/install.sh --help
+```
+
+After installation, you can use the `fal-bundles` command from anywhere:
+
+```bash
+fal-bundles --help
+fal-bundles list
+fal-bundles create <path>
+fal-bundles download <bundle-id>
+```
+
 ### Usage
 
 #### 1. Create
 ```bash
-python -m cli create <path1> [path2 ...]
+fal-bundles create <path1> [path2 ...]
 ```
 
 **Flow**:
@@ -21,7 +48,7 @@ python -m cli create <path1> [path2 ...]
 
 #### 2. List
 ```bash
-python -m cli list
+fal-bundles list
 ```
 
 **Flow**:
@@ -40,7 +67,7 @@ python -m cli list
 
 #### 3. Download
 ```bash
-python -m cli download <bundle_id>
+fal-bundles download <bundle_id>
 ```
 
 **Flow**:
