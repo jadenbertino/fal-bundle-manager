@@ -84,16 +84,15 @@ def list_cmd(api_url):
             sys.exit(0)
 
         # Format and display table
-        header = f"{'ID':<28} | {'Files':>6} | {'Total Size':>12} | {'Created':<20} | {'Merkle':<12}"
+        header = f"{'ID':<28} | {'Files':>6} | {'Total Size':>12} | {'Created':<20}"
         click.echo(header)
         click.echo("-" * len(header))
 
         for bundle in response.bundles:
             size_str = format_size(bundle.total_bytes)
             date_str = format_timestamp(bundle.created_at)
-            merkle_short = bundle.merkle_root[:10]  # First 10 characters only
             click.echo(
-                f"{bundle.id:<28} | {bundle.file_count:>6} | {size_str:>12} | {date_str:<20} | {merkle_short:<12}"
+                f"{bundle.id:<28} | {bundle.file_count:>6} | {size_str:>12} | {date_str:<20}"
             )
 
         sys.exit(0)
