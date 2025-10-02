@@ -40,7 +40,7 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-echo "==> Installing fal-bundles CLI wrapper..."
+echo "==> Installing $WRAPPER_NAME CLI wrapper..."
 echo "   Project root: $PROJECT_ROOT"
 echo "   Install directory: $INSTALL_DIR"
 
@@ -56,6 +56,9 @@ cat > "$INSTALL_DIR/$WRAPPER_NAME" << EOF
 PROJECT_ROOT="$PROJECT_ROOT"
 CLI_DIR="\$PROJECT_ROOT/cli"
 
+# Set the program name for the CLI
+export FAL_BUNDLES_PROG_NAME="$WRAPPER_NAME"
+
 # Run the CLI using the run.sh script
 exec "\$CLI_DIR/scripts/run.sh" "\$@"
 EOF
@@ -64,7 +67,7 @@ EOF
 chmod +x "$INSTALL_DIR/$WRAPPER_NAME"
 
 echo ""
-echo "✓ fal-bundles CLI wrapper installed successfully!"
+echo "✓ $WRAPPER_NAME CLI wrapper installed successfully!"
 echo ""
 echo "Installation details:"
 echo "  Wrapper script: $INSTALL_DIR/$WRAPPER_NAME"
@@ -75,7 +78,7 @@ echo ""
 if [[ ":$PATH:" != *":$INSTALL_DIR:"* ]]; then
     echo "⚠️  Warning: $INSTALL_DIR is not in your PATH"
     echo ""
-    echo "To use 'fal-bundles' command, add this to your shell profile:"
+    echo "To use '$WRAPPER_NAME' command, add this to your shell profile:"
     echo "  export PATH=\"$INSTALL_DIR:\$PATH\""
     echo ""
     echo "Then reload your shell or run:"
@@ -87,11 +90,11 @@ if [[ ":$PATH:" != *":$INSTALL_DIR:"* ]]; then
 else
     echo "✓ $INSTALL_DIR is in your PATH"
     echo ""
-    echo "You can now use the 'fal-bundles' command:"
-    echo "  fal-bundles --help"
-    echo "  fal-bundles list"
-    echo "  fal-bundles create <path>"
-    echo "  fal-bundles download <bundle-id>"
+    echo "You can now use the '$WRAPPER_NAME' command:"
+    echo "  $WRAPPER_NAME --help"
+    echo "  $WRAPPER_NAME list"
+    echo "  $WRAPPER_NAME create <path>"
+    echo "  $WRAPPER_NAME download <bundle-id>"
 fi
 
 echo ""

@@ -17,23 +17,7 @@ See [docs/project_overview.md](./project_overview.md) for more details.
 - **Bundle** - a collection of blobs with associated relative file paths. Bundles are represented by JSON manifests that map paths to blob hashes.
   - **Summary** - a JSON file that contains all bundle metadata except the file list
   - **Manifest** - a JSON file that contains all bundle metadata and the file list
-- **Deduplication** - files are identified by their SHA-256 hash. Multiple bundles can reference the same blob without duplicating storage.
-
-## Project Structure
-
-See [docs/project_structure.md](./project_structure.md)
-
-## API Design
-
-See [docs/api/README.md](./api/README.md)
-
-## Storage Implementation
-
-See [docs/storage/README.md](./storage/README.md)
-
-## CLI Design
-
-See [docs/cli/README.md](./cli/README.md)
+- **Deduplication** - files are identified by the SHA-256 hash of their content. This allows multiple bundles to reference the same blob without duplicating storage.
 
 ## Data Flow
 
@@ -73,3 +57,20 @@ CLI                    API Server              Storage
  |--2. Write to file       |                       |
  |--3. Print success       |                       |
 ```
+
+## Project Structure
+
+See [docs/project_structure.md](./project_structure.md)
+
+## API Design
+
+See [docs/api/README.md](./api/README.md)
+
+## CLI Design
+
+See [docs/cli/README.md](./cli/README.md)
+
+## Storage Implementation
+
+See [docs/storage/README.md](./storage/README.md)
+

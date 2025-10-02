@@ -10,7 +10,7 @@ A simple system for creating, listing, and downloading resource bundles.
 ./api/scripts/start.sh
 ```
 
-The server will run on http://localhost:8000
+The server will auto-install dependencies and run on http://localhost:8000
 
 ### 2. Install the CLI
 
@@ -37,6 +37,11 @@ fal-bundles list
 Download a bundle:
 ```bash
 fal-bundles download <bundle-id>
+```
+
+View help:
+```bash
+fal-bundles --help
 ```
 
 That's it! The system automatically deduplicates files, so you won't waste storage or bandwidth on files you've already uploaded.

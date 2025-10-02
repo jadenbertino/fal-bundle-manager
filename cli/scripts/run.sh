@@ -53,4 +53,11 @@ source "$CLI_DIR/.venv/bin/activate"
 export PYTHONPATH="$PROJECT_ROOT"
 
 # Run CLI with all passed arguments (stay in current directory)
-python -m cli "$@"
+# Use the program name from environment variable or default to 'fal-bundles'
+PROG_NAME="${FAL_BUNDLES_PROG_NAME:-fal-bundles}"
+python -c "
+import sys
+sys.argv[0] = '$PROG_NAME'
+import cli.__main__
+cli.__main__.cli()
+" "$@"
