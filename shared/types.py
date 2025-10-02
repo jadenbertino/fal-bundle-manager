@@ -30,6 +30,12 @@ class BundleSummary(BaseModel):
     hash_algo: Literal["sha256"] = Field(default="sha256", description="Hash algorithm used")
     file_count: int = Field(..., ge=0, description="Number of files in bundle")
     total_bytes: int = Field(..., ge=0, description="Total size of all files in bytes")
+    merkle_root: str = Field(..., description="Merkle root covering all bundle files")
+
+    @field_validator('merkle_root')
+    @classmethod
+    def validate_merkle_root(cls, v: str) -> str:
+        return validate_sha256_hash(v)
 
 
 class BundleManifest(BundleSummary):

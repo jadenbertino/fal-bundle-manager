@@ -36,8 +36,11 @@ def create(paths, api_url):
         # Create bundle
         response = create_bundle(validated_paths, api_client)
 
-        # Output success
-        click.echo(f"Created bundle: {response.id}")
+        # Output success with all returned fields
+        click.echo("Created bundle:")
+        click.echo(f"- ID: {response.id}")
+        click.echo(f"- Created: {response.created_at}")
+        click.echo(f"- Merkle: {response.merkle_root}")
         sys.exit(0)
 
     except FileNotFoundError as e:

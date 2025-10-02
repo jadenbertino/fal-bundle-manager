@@ -5,6 +5,7 @@ from typing import Optional
 from shared.types import Blob
 from shared.api_contracts.preflight import PreflightRequest
 from shared.api_contracts.create_bundle import BundleManifestDraft, BundleCreateResponse
+from shared.merkle import compute_merkle_root
 from cli.core.file_discovery import discover_files
 from cli.core.hashing import hash_file_sha256
 
@@ -67,10 +68,22 @@ def create_bundle(
             with open(file.absolute_path, 'rb') as f:
                 api_client.upload_blob(blob.hash, blob.size_bytes, f)
 
-    # Step 5: Create bundle
+    # Step 5: Compute merkle root
+    computed_merkle_root = compute_merkle_root(blobs)
+    
+    # Step 6: Create bundle
     manifest = BundleManifestDraft(
         id=bundle_id,
         files=blobs,
-        hash_algo="sha256"
+        hash_algo="sha256",
+        merkle_root=computed_merkle_root
     )
-    return api_client.create_bundle(manifest)
+    
+    # Step 7: Send request and validate response
+    response = api_client.create_bundle(manifest)
+    
+    # Validate that server-returned merkle root matches our computed one
+    if response.merkle_root != computed_merkle_root:
+        raise ValueError(f"Merkle root mismatch: expected {computed_merkle_root}, got {response.merkle_root}")
+    
+    return response

@@ -1,12 +1,13 @@
 import requests
 from pathlib import Path
 from api.tests.helpers import BASE_URL, create_blob, create_bundle
+from shared.config import get_data_dir
 
 
 def test_list_bundles_empty():
     """Test listing bundles when none exist."""
     # Clean up bundles summaries directory
-    summaries_dir = Path(".data") / "bundles" / "summaries"
+    summaries_dir = get_data_dir() / "bundles" / "summaries"
     if summaries_dir.exists():
         for bundle_file in summaries_dir.glob("*.json"):
             bundle_file.unlink()
@@ -38,14 +39,15 @@ def test_list_bundles_single():
     assert bundle["hash_algo"] == "sha256"
     assert bundle["file_count"] == 1
     assert bundle["total_bytes"] == len(b"test content")
+    assert bundle["merkle_root"] == bundle_data["merkle_root"]
 
 
 def test_list_bundles_multiple():
     """Test listing multiple bundles."""
     # Create multiple bundles
-    bundle1 = create_bundle([(b"file1", "f1.txt")], "bundle-list-test-1")
-    bundle2 = create_bundle([(b"file2", "f2.txt"), (b"file3", "f3.txt")], "bundle-list-test-2")
-    bundle3 = create_bundle([(b"file4" * 100, "f4.txt")], "bundle-list-test-3")
+    bundle1 = create_bundle([(b"file1", "f1.txt")])
+    bundle2 = create_bundle([(b"file2", "f2.txt"), (b"file3", "f3.txt")])
+    bundle3 = create_bundle([(b"file4" * 100, "f4.txt")])
 
     response = requests.get(f"{BASE_URL}/bundles")
     assert response.status_code == 200
@@ -54,26 +56,25 @@ def test_list_bundles_multiple():
     assert "bundles" in data
     bundles = data["bundles"]
 
-    # Find our bundles
-    ids = [b["id"] for b in bundles]
-    assert "bundle-list-test-1" in ids
-    assert "bundle-list-test-2" in ids
-    assert "bundle-list-test-3" in ids
+    # Find our bundles by checking that we have at least 3 bundles
+    # (we can't predict the exact IDs since they're auto-generated)
+    assert len(bundles) >= 3
 
-    # Verify bundle 1
-    b1 = next(b for b in bundles if b["id"] == "bundle-list-test-1")
-    assert b1["file_count"] == 1
-    assert b1["total_bytes"] == 5
+    # Find bundles by their characteristics
+    # Bundle 1: 1 file, 5 bytes
+    b1 = next((b for b in bundles if b["file_count"] == 1 and b["total_bytes"] == 5), None)
+    assert b1 is not None
+    assert len(b1["merkle_root"]) == 64
 
-    # Verify bundle 2
-    b2 = next(b for b in bundles if b["id"] == "bundle-list-test-2")
-    assert b2["file_count"] == 2
-    assert b2["total_bytes"] == 10
+    # Bundle 2: 2 files, 10 bytes
+    b2 = next((b for b in bundles if b["file_count"] == 2 and b["total_bytes"] == 10), None)
+    assert b2 is not None
+    assert len(b2["merkle_root"]) == 64
 
-    # Verify bundle 3
-    b3 = next(b for b in bundles if b["id"] == "bundle-list-test-3")
-    assert b3["file_count"] == 1
-    assert b3["total_bytes"] == 500
+    # Bundle 3: 1 file, 500 bytes
+    b3 = next((b for b in bundles if b["file_count"] == 1 and b["total_bytes"] == 500), None)
+    assert b3 is not None
+    assert len(b3["merkle_root"]) == 64
 
 
 def test_list_bundles_sorted_by_created_at():
@@ -81,11 +82,11 @@ def test_list_bundles_sorted_by_created_at():
     import time
 
     # Create bundles with small delays to ensure different timestamps
-    bundle1 = create_bundle([(b"first", "1.txt")], "bundle-sort-1")
+    bundle1 = create_bundle([(b"first", "1.txt")])
     time.sleep(0.1)
-    bundle2 = create_bundle([(b"second", "2.txt")], "bundle-sort-2")
+    bundle2 = create_bundle([(b"second", "2.txt")])
     time.sleep(0.1)
-    bundle3 = create_bundle([(b"third", "3.txt")], "bundle-sort-3")
+    bundle3 = create_bundle([(b"third", "3.txt")])
 
     response = requests.get(f"{BASE_URL}/bundles")
     assert response.status_code == 200
@@ -93,21 +94,24 @@ def test_list_bundles_sorted_by_created_at():
 
     bundles = data["bundles"]
 
-    # Find our test bundles
-    test_bundles = [b for b in bundles if b["id"].startswith("bundle-sort-")]
-    assert len(test_bundles) == 3
+    # Find our test bundles by looking for bundles with 1 file and 5 bytes
+    # (each of our test bundles has this characteristic)
+    test_bundles = [b for b in bundles if b["file_count"] == 1 and b["total_bytes"] == 5]
+    assert len(test_bundles) >= 3  # We created 3 bundles, but there might be others
+    
+    # Verify all test bundles have valid merkle roots
+    for entry in test_bundles:
+        assert len(entry["merkle_root"]) == 64
 
-    # Verify sorting (newest first)
-    ids = [b["id"] for b in test_bundles]
-    assert ids[0] == "bundle-sort-3"  # Newest
-    assert ids[1] == "bundle-sort-2"
-    assert ids[2] == "bundle-sort-1"  # Oldest
+    # Verify sorting (newest first) - check that created_at timestamps are in descending order
+    created_at_times = [b["created_at"] for b in test_bundles]
+    assert created_at_times == sorted(created_at_times, reverse=True)
 
 
 def test_list_bundles_response_schema():
     """Test that response matches BundleListResponse schema."""
     # Create a bundle
-    create_bundle([(b"schema test", "test.txt")], "bundle-schema-test")
+    create_bundle([(b"schema test", "test.txt")])
 
     response = requests.get(f"{BASE_URL}/bundles")
     assert response.status_code == 200
@@ -117,12 +121,21 @@ def test_list_bundles_response_schema():
     assert "bundles" in data
     assert isinstance(data["bundles"], list)
 
-    # Find our bundle and validate structure
-    bundle = next((b for b in data["bundles"] if b["id"] == "bundle-schema-test"), None)
-    assert bundle is not None
+    # Find our bundle by its characteristics (1 file, 11 bytes for "schema test")
+    # We need to be more specific since there might be other bundles with same characteristics
+    bundles_with_1_file_11_bytes = [b for b in data["bundles"] if b["file_count"] == 1 and b["total_bytes"] == 11]
+    assert len(bundles_with_1_file_11_bytes) >= 1
+    bundle = bundles_with_1_file_11_bytes[0]  # Use the first one we find
 
     # Validate BundleSummary fields
-    required_fields = ["id", "created_at", "hash_algo", "file_count", "total_bytes"]
+    required_fields = [
+        "id",
+        "created_at",
+        "hash_algo",
+        "file_count",
+        "total_bytes",
+        "merkle_root",
+    ]
     for field in required_fields:
         assert field in bundle, f"Missing required field: {field}"
 
@@ -132,6 +145,8 @@ def test_list_bundles_response_schema():
     assert isinstance(bundle["hash_algo"], str)
     assert isinstance(bundle["file_count"], int)
     assert isinstance(bundle["total_bytes"], int)
+    assert isinstance(bundle["merkle_root"], str)
+    assert len(bundle["merkle_root"]) == 64
 
     # Should not include files list
     assert "files" not in bundle
@@ -145,27 +160,31 @@ def test_list_bundles_statistics_accuracy():
         (b"c" * 50, "file3.txt"),
     ]
 
-    bundle_data = create_bundle(files_data, "bundle-stats-test")
+    bundle_data = create_bundle(files_data)
 
     response = requests.get(f"{BASE_URL}/bundles")
     assert response.status_code == 200
     data = response.json()
 
-    bundle = next((b for b in data["bundles"] if b["id"] == "bundle-stats-test"), None)
+    # Find bundle by its characteristics (3 files, 400 bytes)
+    bundle = next((b for b in data["bundles"] if b["file_count"] == 3 and b["total_bytes"] == 400), None)
     assert bundle is not None
     assert bundle["file_count"] == 3
     assert bundle["total_bytes"] == 400  # 100 + 250 + 50
+    assert len(bundle["merkle_root"]) == 64
 
 
 def test_list_bundles_empty_bundle():
     """Test listing includes bundles with no files."""
-    create_bundle([], "bundle-empty-test")
+    create_bundle([])
 
     response = requests.get(f"{BASE_URL}/bundles")
     assert response.status_code == 200
     data = response.json()
 
-    bundle = next((b for b in data["bundles"] if b["id"] == "bundle-empty-test"), None)
+    # Find empty bundle by its characteristics (0 files, 0 bytes)
+    bundle = next((b for b in data["bundles"] if b["file_count"] == 0 and b["total_bytes"] == 0), None)
     assert bundle is not None
     assert bundle["file_count"] == 0
     assert bundle["total_bytes"] == 0
+    assert len(bundle["merkle_root"]) == 64

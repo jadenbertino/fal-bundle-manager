@@ -1,0 +1,1 @@
+Content from file2 in test directory

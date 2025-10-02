@@ -1,0 +1,2 @@
+This is a single test file for CLI testing.
+It contains some content to verify hashing works correctly.

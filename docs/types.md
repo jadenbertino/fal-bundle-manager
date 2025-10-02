@@ -39,9 +39,15 @@ type BundleSummary = {
   created_at: string,            // ISO 8601 timestamp (e.g., `2023-12-25T10:30:00Z`)
   hash_algo: "sha256",           // Hash algorithm used
   file_count: number,            // Number of files in bundle
-  total_bytes: number            // Total size of all files in bytes
+  total_bytes: number,           // Total size of all files in bytes
+  merkle_root: string            // SHA-256 Merkle root over bundle contents
 }
 ```
+
+`merkle_root` is derived by sorting files by `bundle_path`, hashing each
+`"{bundle_path}:{hash}"` string with SHA-256 to produce the leaves, then
+building a binary Merkle tree (duplicating the final leaf when necessary)
+until a single SHA-256 digest remains.
 
 ## BundleManifest
 

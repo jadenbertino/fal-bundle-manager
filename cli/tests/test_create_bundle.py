@@ -170,7 +170,8 @@ class TestBundleCreationWithMocks:
         api_client.upload_blob.return_value = True
         api_client.create_bundle.return_value = BundleCreateResponse(
             id="test-bundle-id",
-            created_at="2024-01-01T00:00:00Z"
+            created_at="2024-01-01T00:00:00Z",
+            merkle_root="e" * 64,
         )
 
         result = create_bundle([str(file)], api_client)
@@ -189,7 +190,8 @@ class TestBundleCreationWithMocks:
         api_client.preflight.return_value = PreflightResponse(missing=[])
         api_client.create_bundle.return_value = BundleCreateResponse(
             id="test-bundle-id",
-            created_at="2024-01-01T00:00:00Z"
+            created_at="2024-01-01T00:00:00Z",
+            merkle_root="e" * 64,
         )
 
         result = create_bundle([str(file)], api_client)
@@ -213,7 +215,8 @@ class TestBundleCreationWithMocks:
         api_client.upload_blob.return_value = True
         api_client.create_bundle.return_value = BundleCreateResponse(
             id="test-bundle-id",
-            created_at="2024-01-01T00:00:00Z"
+            created_at="2024-01-01T00:00:00Z",
+            merkle_root="e" * 64,
         )
 
         result = create_bundle([str(file1), str(file2)], api_client)
@@ -232,7 +235,8 @@ class TestBundleCreationWithMocks:
         api_client.preflight.return_value = PreflightResponse(missing=[])
         api_client.create_bundle.return_value = BundleCreateResponse(
             id="test-bundle-id",
-            created_at="2024-01-01T00:00:00Z"
+            created_at="2024-01-01T00:00:00Z",
+            merkle_root="e" * 64,
         )
 
         result = create_bundle([str(configs_dir)], api_client)
@@ -267,7 +271,8 @@ class TestBundleCreationIntegration:
         api_client.upload_blob.return_value = True
         api_client.create_bundle.return_value = BundleCreateResponse(
             id="bundle-123",
-            created_at="2024-01-01T00:00:00Z"
+            created_at="2024-01-01T00:00:00Z",
+            merkle_root="e" * 64,
         )
 
         # Execute

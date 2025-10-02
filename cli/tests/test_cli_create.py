@@ -9,6 +9,29 @@ import requests
 from cli.__main__ import cli
 from shared.api_contracts.preflight import PreflightResponse
 from shared.api_contracts.create_bundle import BundleCreateResponse
+from cli.tests.fixtures import get_fixture_path
+from shared.merkle import compute_merkle_root
+from shared.types import Blob
+import hashlib
+
+
+DEFAULT_BUNDLE_ID = "test-bundle-123"
+DEFAULT_CREATED_AT = "2024-01-01T00:00:00Z"
+DEFAULT_MERKLE = "d" * 64
+
+
+def expected_create_output(
+    bundle_id: str = DEFAULT_BUNDLE_ID,
+    created_at: str = DEFAULT_CREATED_AT,
+    merkle: str = DEFAULT_MERKLE,
+) -> str:
+    """Construct the expected multi-line success message."""
+    return (
+        "Created bundle:\n"
+        f"- ID: {bundle_id}\n"
+        f"- Created: {created_at}\n"
+        f"- Merkle: {merkle}"
+    )
 
 
 @pytest.fixture
@@ -17,15 +40,33 @@ def runner():
     return CliRunner()
 
 
+def compute_real_merkle_root(file_paths):
+    """Compute the real merkle root for given file paths."""
+    blobs = []
+    for file_path in file_paths:
+        with open(file_path, 'rb') as f:
+            content = f.read()
+        file_hash = hashlib.sha256(content).hexdigest()
+        blob = Blob(
+            bundle_path=file_path.name,
+            size_bytes=len(content),
+            hash=file_hash,
+            hash_algo="sha256"
+        )
+        blobs.append(blob)
+    return compute_merkle_root(blobs)
+
 @pytest.fixture
 def mock_api_client():
     """Create a mock API client."""
     mock = Mock()
     mock.preflight.return_value = PreflightResponse(missing=[])
     mock.upload_blob.return_value = True
+    # We'll set the merkle root dynamically based on real files
     mock.create_bundle.return_value = BundleCreateResponse(
-        id="test-bundle-123",
-        created_at="2024-01-01T00:00:00Z"
+        id=DEFAULT_BUNDLE_ID,
+        created_at=DEFAULT_CREATED_AT,
+        merkle_root=DEFAULT_MERKLE,  # Will be overridden
     )
     return mock
 
@@ -40,80 +81,108 @@ class TestCreateSuccess:
     @patch('cli.commands.create.BundlesAPIClient')
     def test_create_with_single_file(self, mock_client_class, runner, mock_api_client):
         """Test create with a single file."""
+        # Use real fixture file
+        fixture_file = get_fixture_path("single_file")
+        
+        # Compute real merkle root
+        real_merkle = compute_real_merkle_root([fixture_file])
+        mock_api_client.create_bundle.return_value = BundleCreateResponse(
+            id=DEFAULT_BUNDLE_ID,
+            created_at=DEFAULT_CREATED_AT,
+            merkle_root=real_merkle,
+        )
         mock_client_class.return_value = mock_api_client
 
-        with runner.isolated_filesystem():
-            # Create test file
-            with open('test.txt', 'w') as f:
-                f.write('hello world')
+        # Run command with real fixture file
+        result = runner.invoke(cli, ['create', str(fixture_file)])
 
-            # Run command
-            result = runner.invoke(cli, ['create', 'test.txt'])
-
-            # Assertions
-            assert result.exit_code == 0
-            assert 'Created bundle: test-bundle-123' in result.output
-            assert mock_api_client.preflight.called
-            assert mock_api_client.create_bundle.called
+        # Assertions
+        assert result.exit_code == 0
+        expected = expected_create_output(merkle=real_merkle)
+        assert result.output.strip() == expected
+        assert mock_api_client.preflight.called
+        assert mock_api_client.create_bundle.called
 
     @patch('cli.commands.create.BundlesAPIClient')
     def test_create_with_single_directory(self, mock_client_class, runner, mock_api_client):
         """Test create with a directory."""
+        # Use real fixture directory
+        fixture_dir = get_fixture_path("test_dir")
+        
+        # Compute real merkle root for directory contents
+        import os
+        file_paths = []
+        for root, dirs, files in os.walk(fixture_dir):
+            for file in files:
+                file_paths.append(os.path.join(root, file))
+        
+        real_merkle = compute_real_merkle_root([Path(p) for p in file_paths])
+        mock_api_client.create_bundle.return_value = BundleCreateResponse(
+            id=DEFAULT_BUNDLE_ID,
+            created_at=DEFAULT_CREATED_AT,
+            merkle_root=real_merkle,
+        )
         mock_client_class.return_value = mock_api_client
 
-        with runner.isolated_filesystem():
-            # Create directory with files
-            import os
-            os.mkdir('my_dir')
-            with open('my_dir/file1.txt', 'w') as f:
-                f.write('content1')
-            with open('my_dir/file2.txt', 'w') as f:
-                f.write('content2')
+        # Run command with real fixture directory
+        result = runner.invoke(cli, ['create', str(fixture_dir)])
 
-            # Run command
-            result = runner.invoke(cli, ['create', 'my_dir'])
-
-            # Assertions
-            assert result.exit_code == 0
-            assert 'Created bundle: test-bundle-123' in result.output
+        # Assertions
+        assert result.exit_code == 0
+        expected = expected_create_output(merkle=real_merkle)
+        assert result.output.strip() == expected
 
     @patch('cli.commands.create.BundlesAPIClient')
     def test_create_with_multiple_paths(self, mock_client_class, runner, mock_api_client):
         """Test create with multiple paths (files and directories)."""
+        # Use real fixture files
+        file1 = get_fixture_path("file1")
+        file2 = get_fixture_path("file2")
+        configs_dir = get_fixture_path("configs")
+        
+        # Compute real merkle root for all files
+        import os
+        all_files = [file1, file2]
+        for root, dirs, files in os.walk(configs_dir):
+            for file in files:
+                all_files.append(os.path.join(root, file))
+        
+        real_merkle = compute_real_merkle_root([Path(p) for p in all_files])
+        mock_api_client.create_bundle.return_value = BundleCreateResponse(
+            id=DEFAULT_BUNDLE_ID,
+            created_at=DEFAULT_CREATED_AT,
+            merkle_root=real_merkle,
+        )
         mock_client_class.return_value = mock_api_client
 
-        with runner.isolated_filesystem():
-            # Create files and directory
-            with open('file1.txt', 'w') as f:
-                f.write('content1')
-            with open('file2.txt', 'w') as f:
-                f.write('content2')
-            import os
-            os.mkdir('dir1')
-            with open('dir1/file3.txt', 'w') as f:
-                f.write('content3')
+        # Run command with real fixture files
+        result = runner.invoke(cli, ['create', str(file1), str(configs_dir), str(file2)])
 
-            # Run command
-            result = runner.invoke(cli, ['create', 'file1.txt', 'dir1', 'file2.txt'])
-
-            # Assertions
-            assert result.exit_code == 0
-            assert 'Created bundle: test-bundle-123' in result.output
+        # Assertions
+        assert result.exit_code == 0
+        expected = expected_create_output(merkle=real_merkle)
+        assert result.output.strip() == expected
 
     @patch('cli.commands.create.BundlesAPIClient')
     def test_create_outputs_bundle_id(self, mock_client_class, runner, mock_api_client):
         """Test that create outputs the bundle ID."""
+        # Use real fixture file
+        fixture_file = get_fixture_path("single_file")
+        
+        # Compute real merkle root
+        real_merkle = compute_real_merkle_root([fixture_file])
+        mock_api_client.create_bundle.return_value = BundleCreateResponse(
+            id=DEFAULT_BUNDLE_ID,
+            created_at=DEFAULT_CREATED_AT,
+            merkle_root=real_merkle,
+        )
         mock_client_class.return_value = mock_api_client
 
-        with runner.isolated_filesystem():
-            with open('test.txt', 'w') as f:
-                f.write('test')
+        result = runner.invoke(cli, ['create', str(fixture_file)])
 
-            result = runner.invoke(cli, ['create', 'test.txt'])
-
-            # Check output format
-            assert 'Created bundle:' in result.output
-            assert 'test-bundle-123' in result.output
+        # Check output format
+        expected = expected_create_output(merkle=real_merkle)
+        assert result.output.strip() == expected
 
 
 # ============================================================================
@@ -134,17 +203,15 @@ class TestCreateErrors:
     @patch('cli.commands.create.BundlesAPIClient')
     def test_create_with_empty_directory(self, mock_client_class, runner, mock_api_client):
         """Test create with an empty directory."""
+        # Use real empty directory fixture
+        empty_dir = get_fixture_path("empty_dir")
         mock_client_class.return_value = mock_api_client
 
-        with runner.isolated_filesystem():
-            import os
-            os.mkdir('empty_dir')
+        result = runner.invoke(cli, ['create', str(empty_dir)])
 
-            result = runner.invoke(cli, ['create', 'empty_dir'])
-
-            # Should fail with exit code 2
-            assert result.exit_code == 2
-            assert 'no files' in result.output.lower() or 'error' in result.output.lower()
+        # Should fail with exit code 2
+        assert result.exit_code == 2
+        assert 'no files' in result.output.lower() or 'error' in result.output.lower()
 
     def test_create_with_no_arguments(self, runner):
         """Test create with no arguments."""
@@ -169,14 +236,12 @@ class TestCreateNetworkErrors:
         mock_client.preflight.side_effect = requests.exceptions.ConnectionError("Connection failed")
         mock_client_class.return_value = mock_client
 
-        with runner.isolated_filesystem():
-            with open('test.txt', 'w') as f:
-                f.write('test')
+        # Use real fixture file
+        fixture_file = get_fixture_path("single_file")
+        result = runner.invoke(cli, ['create', str(fixture_file)])
 
-            result = runner.invoke(cli, ['create', 'test.txt'])
-
-            assert result.exit_code == 4
-            assert 'failed to connect' in result.output.lower() or 'connection' in result.output.lower()
+        assert result.exit_code == 4
+        assert 'failed to connect' in result.output.lower() or 'connection' in result.output.lower()
 
     @patch('cli.commands.create.BundlesAPIClient')
     def test_create_with_timeout_error(self, mock_client_class, runner):
@@ -185,14 +250,12 @@ class TestCreateNetworkErrors:
         mock_client.preflight.side_effect = requests.exceptions.Timeout("Request timed out")
         mock_client_class.return_value = mock_client
 
-        with runner.isolated_filesystem():
-            with open('test.txt', 'w') as f:
-                f.write('test')
+        # Use real fixture file
+        fixture_file = get_fixture_path("single_file")
+        result = runner.invoke(cli, ['create', str(fixture_file)])
 
-            result = runner.invoke(cli, ['create', 'test.txt'])
-
-            assert result.exit_code == 4
-            assert 'timeout' in result.output.lower() or 'timed out' in result.output.lower()
+        assert result.exit_code == 4
+        assert 'timeout' in result.output.lower() or 'timed out' in result.output.lower()
 
     @patch('cli.commands.create.BundlesAPIClient')
     def test_create_with_http_error(self, mock_client_class, runner):
@@ -201,14 +264,12 @@ class TestCreateNetworkErrors:
         mock_client.preflight.side_effect = requests.exceptions.HTTPError("500 Server Error")
         mock_client_class.return_value = mock_client
 
-        with runner.isolated_filesystem():
-            with open('test.txt', 'w') as f:
-                f.write('test')
+        # Use real fixture file
+        fixture_file = get_fixture_path("single_file")
+        result = runner.invoke(cli, ['create', str(fixture_file)])
 
-            result = runner.invoke(cli, ['create', 'test.txt'])
-
-            assert result.exit_code == 4
-            assert 'error' in result.output.lower()
+        assert result.exit_code == 4
+        assert 'error' in result.output.lower()
 
 
 # ============================================================================
@@ -221,17 +282,24 @@ class TestCreateOutputFormat:
     @patch('cli.commands.create.BundlesAPIClient')
     def test_success_message_format(self, mock_client_class, runner, mock_api_client):
         """Test that success message has correct format."""
+        # Use real fixture file
+        fixture_file = get_fixture_path("single_file")
+        
+        # Compute real merkle root
+        real_merkle = compute_real_merkle_root([fixture_file])
+        mock_api_client.create_bundle.return_value = BundleCreateResponse(
+            id=DEFAULT_BUNDLE_ID,
+            created_at=DEFAULT_CREATED_AT,
+            merkle_root=real_merkle,
+        )
         mock_client_class.return_value = mock_api_client
 
-        with runner.isolated_filesystem():
-            with open('test.txt', 'w') as f:
-                f.write('test')
+        result = runner.invoke(cli, ['create', str(fixture_file)])
 
-            result = runner.invoke(cli, ['create', 'test.txt'])
-
-            # Check exact format
-            assert result.exit_code == 0
-            assert result.output.strip() == 'Created bundle: test-bundle-123'
+        # Check exact format
+        assert result.exit_code == 0
+        expected = expected_create_output(merkle=real_merkle)
+        assert result.output.strip() == expected
 
 
 # ============================================================================

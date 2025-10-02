@@ -45,6 +45,7 @@ api/.data/bundles/manifests/{id}.json
   "id": "01HQZX...",
   "created_at": "2023-12-25T10:30:00Z",
   "hash_algo": "sha256",
+  "merkle_root": "a1b2c3d4...",
   "files": [
     {
       "bundle_path": "models/config.yaml",
@@ -76,7 +77,8 @@ api/.data/bundles/summaries/{id}.json
   "created_at": "2023-12-25T10:30:00Z",
   "hash_algo": "sha256",
   "file_count": 10,
-  "total_bytes": 524288
+  "total_bytes": 524288,
+  "merkle_root": "a1b2c3d4..."
 }
 ```
 
@@ -85,3 +87,4 @@ api/.data/bundles/summaries/{id}.json
 - List operations are faster and use less memory
 - Download operations use manifests to get complete file information
 - Both files are created atomically when a bundle is created
+- `merkle_root` enables lightweight integrity checks without reading manifests
