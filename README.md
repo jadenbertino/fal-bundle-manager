@@ -56,6 +56,7 @@ That's it! The system automatically deduplicates files, so you won't waste stora
 - Efficient storage architecture
   - Automatic deduplication - same file only stored once across all bundles
   - Fanout directory structure - prevents filesystem performance degradation
+  - Concurrent file uploads for faster bundle creation times
 - Automatic dependency installation
 - Efficient bundle listing: separate metadata from file lists for optimal performance
 - File integrity
