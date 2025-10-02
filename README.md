@@ -2,7 +2,12 @@
 
 A simple system for creating, listing, and downloading resource bundles.
 
+**Watch this demo for a quick walkthrough of usage, project structure, and architecture:**
+
+https://www.loom.com/share/0c885d3c27c04abc97c6b49066cecf00?sid=d907a404-ac68-4548-94da-23d6b21cf5e2
+
 ## Quick Start
+
 
 ### 1. Start the server
 

@@ -72,5 +72,5 @@ See [docs/cli/README.md](./cli/README.md)
 
 ## Storage Implementation
 
-See [docs/storage/README.md](./storage/README.md)
+See [docs/storage.md](./storage.md)
 
