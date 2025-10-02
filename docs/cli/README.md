@@ -11,7 +11,7 @@ python -m cli create <path1> [path2 ...]
 3. Call preflight API to check which blobs exist
 4. Upload missing blobs (with progress indication)
 5. Create bundle via API
-6. Print bundle ID
+6. Prints bundle details
 
 **Exit Codes**:
 - 0: Success

@@ -9,6 +9,7 @@ from ulid import ULID
 from shared.api_contracts.create_bundle import BundleManifestDraft, BundleCreateResponse
 from api.storage import blob_exists
 from shared.config import get_bundle_manifests_dir, get_bundle_summaries_dir
+from shared.merkle import compute_merkle_root
 
 router = APIRouter()
 
@@ -63,6 +64,16 @@ async def create_bundle(request: BundleManifestDraft):
         # Calculate statistics
         file_count = len(request.files)
         total_bytes = sum(file.size_bytes for file in request.files)
+        computed_merkle_root = compute_merkle_root(request.files)
+        
+        # Validate that client-provided merkle root matches server-computed one
+        if request.merkle_root != computed_merkle_root:
+            raise HTTPException(
+                status_code=409,
+                detail=f"Merkle root mismatch: expected {computed_merkle_root}, got {request.merkle_root}"
+            )
+        
+        merkle_root = computed_merkle_root
 
         # Create timestamp
         created_at = datetime.utcnow().isoformat() + "Z"
@@ -74,7 +85,8 @@ async def create_bundle(request: BundleManifestDraft):
             "hash_algo": request.hash_algo,
             "files": [file.model_dump() for file in request.files],
             "file_count": file_count,
-            "total_bytes": total_bytes
+            "total_bytes": total_bytes,
+            "merkle_root": merkle_root
         }
 
         # Build summary (does NOT include files)
@@ -83,7 +95,8 @@ async def create_bundle(request: BundleManifestDraft):
             "created_at": created_at,
             "hash_algo": request.hash_algo,
             "file_count": file_count,
-            "total_bytes": total_bytes
+            "total_bytes": total_bytes,
+            "merkle_root": merkle_root
         }
 
         # Write manifest to storage
@@ -122,7 +135,8 @@ async def create_bundle(request: BundleManifestDraft):
             status_code=201,
             content={
                 "id": bundle_id,
-                "created_at": created_at
+                "created_at": created_at,
+                "merkle_root": merkle_root
             }
         )
 

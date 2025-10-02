@@ -69,7 +69,7 @@ def list_cmd(api_url):
     """
     List all available bundles.
 
-    Displays bundles in a table with ID, file count, total size, and creation date.
+    Displays bundles in a table with ID, file count, total size, creation date, and Merkle root (first 10 chars).
     """
     try:
         # Initialize API client
@@ -84,14 +84,16 @@ def list_cmd(api_url):
             sys.exit(0)
 
         # Format and display table
-        click.echo(f"{'ID':<28} | {'Files':>6} | {'Total Size':>12} | {'Created':<20}")
-        click.echo("-" * 80)
+        header = f"{'ID':<28} | {'Files':>6} | {'Total Size':>12} | {'Created':<20} | {'Merkle':<12}"
+        click.echo(header)
+        click.echo("-" * len(header))
 
         for bundle in response.bundles:
             size_str = format_size(bundle.total_bytes)
             date_str = format_timestamp(bundle.created_at)
+            merkle_short = bundle.merkle_root[:10]  # First 10 characters only
             click.echo(
-                f"{bundle.id:<28} | {bundle.file_count:>6} | {size_str:>12} | {date_str:<20}"
+                f"{bundle.id:<28} | {bundle.file_count:>6} | {size_str:>12} | {date_str:<20} | {merkle_short:<12}"
             )
 
         sys.exit(0)

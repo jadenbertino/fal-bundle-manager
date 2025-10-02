@@ -1,0 +1,8 @@
+- [x] UPDATE shared/api_contracts/create_bundle.py to indicate that bundle manifest draft must include merkle root.
+- [x] UPDATE docs/cli/1_create.md to indicate that the cli will compute a merkle root AFTER it uploads all files, before making the request to the endpoint.
+- [x] UPDATE api implementation to
+  - [x] compute merkle root server-side
+  - [x] validate that merkle root from request matches the one that it computed server-side.
+  - [x] send merkle root in response
+- [x] UPDATE cli to
+  - [x] validate that returned merkle root matches what it expected and throw error if not.

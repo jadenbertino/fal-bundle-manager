@@ -36,10 +36,12 @@ Allows users to create a bundle from local files and directories, uploading only
     - Handles upload errors and retries
     - Shows progress for large files/many files
 - Creates bundle
-  - Constructs `BundleManifestDraft` with all files
+  - Computes merkle root over all files using shared merkle algorithm
+  - Constructs `BundleManifestDraft` with all files and computed merkle root
   - Sends to `POST /bundles`
+  - Validates that server-returned merkle root matches computed value
   - Handles bundle creation errors
-- Prints bundle ID on success
+- Prints bundle ID and merkle root on success
 
 ## Side Effects
 
@@ -48,13 +50,13 @@ Allows users to create a bundle from local files and directories, uploading only
 
 ## Output: Success
 
-- STDOUT: `"Created bundle: {id}"`
+- STDOUT: `"Created bundle: {id}"` and `"Merkle root: {merkle_root}"`
 - Exit code: 0
 
 ## Output: Errors
 
 - Exit code 2: invalid/missing path(s) (precondition failure)
-- Exit code 3: server reported missing blobs at commit (consistency error - shouldn't happen if upload succeeded)
+- Exit code 3: server reported missing blobs at commit (consistency error - shouldn't happen if upload succeeded) or merkle root mismatch
 - Exit code 4: network/IO errors
 - Clear error messages with context for different failure modes
 
