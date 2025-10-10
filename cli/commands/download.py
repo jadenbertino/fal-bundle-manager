@@ -10,7 +10,7 @@ from typing import Iterator
 from pydantic import ValidationError
 from cli.client import BundlesAPIClient
 from shared.config import API_URL, API_TIMEOUT
-from shared.api_contracts.download_bundle import DownloadBundleParams
+from shared.api_contracts.download_bundle import DownloadBundleRequest
 
 
 def get_file_extension(format: str) -> str:
@@ -98,7 +98,7 @@ def validate_format(format: str) -> None:
         ValueError: If format is unsupported
     """
     try:
-        DownloadBundleParams(format=format)
+        DownloadBundleRequest(format=format)
     except ValidationError:
         raise ValueError(f"Unsupported format: {format}")
 

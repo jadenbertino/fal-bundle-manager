@@ -4,9 +4,8 @@ import hashlib
 import uuid
 from datetime import datetime
 from pathlib import Path
-from fastapi import APIRouter, HTTPException, Request, Query
-from fastapi.responses import JSONResponse
-from shared.api_contracts.create_blob import BlobUploadResponse
+from fastapi import APIRouter, HTTPException, Request, Query, Response
+from shared.api_contracts.create_blob import CreateBlobResponse
 from shared.validation import validate_sha256_hash
 from api.storage import blob_exists, to_blob_path
 from shared.config import TMP_DIR, MAX_UPLOAD_BYTES
@@ -14,11 +13,12 @@ from shared.config import TMP_DIR, MAX_UPLOAD_BYTES
 router = APIRouter()
 
 
-@router.put("/blobs/{hash}")
+@router.put("/blobs/{hash}", response_model=CreateBlobResponse)
 async def upload_blob(
     hash: str,
     size_bytes: int = Query(..., ge=0),
-    request: Request = None
+    request: Request = None,
+    response: Response = None
 ):
     """
     Upload a blob by its content hash.
@@ -32,7 +32,7 @@ async def upload_blob(
         request: FastAPI request object containing the file body
 
     Returns:
-        BlobUploadResponse indicating whether blob was created or already exists
+        CreateBlobResponse indicating whether blob was created or already exists
 
     Raises:
         HTTPException:
@@ -56,10 +56,8 @@ async def upload_blob(
 
     # Validate blob isn't already uploaded
     if blob_exists(hash):
-        return JSONResponse(
-            status_code=200,
-            content={"status": "exists", "hash": hash}
-        )
+        response.status_code = 200
+        return CreateBlobResponse(status="exists", hash=hash)
 
     # Prepare temporary file for upload
     TMP_DIR.mkdir(parents=True, exist_ok=True)
@@ -92,10 +90,8 @@ async def upload_blob(
         tmp_path.rename(blob_path)
 
         # Return success
-        return JSONResponse(
-            status_code=201,
-            content={"status": "created", "hash": hash}
-        )
+        response.status_code = 201
+        return CreateBlobResponse(status="created", hash=hash)
 
     except HTTPException:
         # Re-raise HTTP exceptions

@@ -17,8 +17,8 @@ from unittest.mock import Mock, patch
 from cli.__main__ import cli
 from shared.types import Blob, BundleSummary
 from shared.api_contracts.preflight import PreflightResponse
-from shared.api_contracts.create_bundle import BundleCreateResponse
-from shared.api_contracts.list_bundles import BundleListResponse
+from shared.api_contracts.create_bundle import CreateBundleResponse
+from shared.api_contracts.list_bundles import ListBundlesResponse
 from shared.merkle import compute_merkle_root
 from cli.tests.fixtures import get_fixture_path
 
@@ -70,7 +70,7 @@ class TestIntegrationWorkflow:
         mock_create_api = Mock()
         mock_create_api.preflight.return_value = PreflightResponse(missing=[])
         mock_create_api.upload_blob.return_value = True
-        mock_create_api.create_bundle.return_value = BundleCreateResponse(
+        mock_create_api.create_bundle.return_value = CreateBundleResponse(
             id="01HQZX123ABC456DEF789GHI",
             created_at="2024-01-15T10:30:00Z",
             merkle_root=expected_merkle
@@ -86,7 +86,7 @@ class TestIntegrationWorkflow:
         
         # Setup list mock
         mock_list_api = Mock()
-        mock_list_api.list_bundles.return_value = BundleListResponse(
+        mock_list_api.list_bundles.return_value = ListBundlesResponse(
             bundles=[
                 BundleSummary(
                     id="01HQZX123ABC456DEF789GHI",
@@ -191,7 +191,7 @@ class TestIntegrationWorkflow:
         mock_create_api = Mock()
         mock_create_api.preflight.return_value = PreflightResponse(missing=[])
         mock_create_api.upload_blob.return_value = True
-        mock_create_api.create_bundle.return_value = BundleCreateResponse(
+        mock_create_api.create_bundle.return_value = CreateBundleResponse(
             id="01HQZX789XYZ123ABC456DEF",
             created_at="2024-01-15T11:00:00Z",
             merkle_root=expected_merkle
@@ -277,7 +277,7 @@ class TestIntegrationWorkflow:
         mock_create_api = Mock()
         mock_create_api.preflight.return_value = PreflightResponse(missing=[])
         mock_create_api.upload_blob.return_value = True
-        mock_create_api.create_bundle.return_value = BundleCreateResponse(
+        mock_create_api.create_bundle.return_value = CreateBundleResponse(
             id="01HQZX123ABC456DEF789GHI",
             created_at="2024-01-15T10:30:00Z",
             merkle_root=expected_merkle
@@ -314,7 +314,7 @@ class TestIntegrationWorkflow:
         mock_create_api = Mock()
         mock_create_api.preflight.return_value = PreflightResponse(missing=[])
         mock_create_api.upload_blob.return_value = True
-        mock_create_api.create_bundle.return_value = BundleCreateResponse(
+        mock_create_api.create_bundle.return_value = CreateBundleResponse(
             id="01HQZX123ABC456DEF789GHI",
             created_at="2024-01-15T10:30:00Z",
             merkle_root="a" * 64  # Wrong merkle root

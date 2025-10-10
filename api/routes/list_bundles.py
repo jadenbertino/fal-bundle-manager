@@ -3,7 +3,7 @@
 import json
 from pathlib import Path
 from fastapi import APIRouter, HTTPException
-from shared.api_contracts.list_bundles import BundleListResponse
+from shared.api_contracts.list_bundles import ListBundlesResponse
 from shared.types import BundleSummary, Blob
 from shared.config import SUMMARIES_DIR, MANIFESTS_DIR
 from shared.merkle import compute_merkle_root
@@ -11,7 +11,7 @@ from shared.merkle import compute_merkle_root
 router = APIRouter()
 
 
-@router.get("/bundles")
+@router.get("/bundles", response_model=ListBundlesResponse)
 async def list_bundles():
     """
     List all available bundles with metadata.
@@ -20,7 +20,7 @@ async def list_bundles():
     Reads from summaries directory (which does NOT include files list).
 
     Returns:
-        BundleListResponse with array of BundleSummary objects
+        ListBundlesResponse with array of BundleSummary objects
 
     Raises:
         HTTPException:
@@ -31,7 +31,7 @@ async def list_bundles():
 
         # Validate summaries directory exists
         if not SUMMARIES_DIR.exists():
-            return BundleListResponse(bundles=[])
+            return ListBundlesResponse(bundles=[])
 
         # Enumerate all .json files in summaries directory
         for summary_path in SUMMARIES_DIR.glob("*.json"):
@@ -77,7 +77,7 @@ async def list_bundles():
         # Sort by created_at descending (newest first)
         bundles.sort(key=lambda b: b.created_at, reverse=True)
 
-        return BundleListResponse(bundles=bundles)
+        return ListBundlesResponse(bundles=bundles)
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Storage error: {str(e)}")

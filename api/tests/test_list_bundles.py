@@ -107,7 +107,7 @@ def test_list_bundles_sorted_by_created_at():
 
 
 def test_list_bundles_response_schema():
-    """Test that response matches BundleListResponse schema."""
+    """Test that response matches ListBundlesResponse schema."""
     # Create a bundle
     create_bundle([(b"schema test", "test.txt")])
 

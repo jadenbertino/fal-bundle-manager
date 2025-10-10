@@ -3,9 +3,9 @@
 import requests
 from typing import BinaryIO, Iterator
 from shared.api_contracts.preflight import PreflightRequest, PreflightResponse
-from shared.api_contracts.create_bundle import BundleManifestDraft, BundleCreateResponse
-from shared.api_contracts.list_bundles import BundleListResponse
-from shared.api_contracts.download_bundle import DownloadBundleParams
+from shared.api_contracts.create_bundle import CreateBundleRequest, CreateBundleResponse
+from shared.api_contracts.list_bundles import ListBundlesResponse
+from shared.api_contracts.download_bundle import DownloadBundleRequest
 
 
 class BundlesAPIClient:
@@ -65,15 +65,15 @@ class BundlesAPIClient:
         response.raise_for_status()
         return response.status_code == 201
 
-    def create_bundle(self, manifest: BundleManifestDraft) -> BundleCreateResponse:
+    def create_bundle(self, manifest: CreateBundleRequest) -> CreateBundleResponse:
         """
         Create a bundle from uploaded blobs.
 
         Args:
-            manifest: BundleManifestDraft with list of files
+            manifest: CreateBundleRequest with list of files
 
         Returns:
-            BundleCreateResponse with bundle id and created_at timestamp
+            CreateBundleResponse with bundle id and created_at timestamp
         """
         url = f"{self.base_url}/bundles"
         response = self.session.post(
@@ -82,14 +82,14 @@ class BundlesAPIClient:
             timeout=self.timeout
         )
         response.raise_for_status()
-        return BundleCreateResponse(**response.json())
+        return CreateBundleResponse(**response.json())
 
-    def list_bundles(self) -> BundleListResponse:
+    def list_bundles(self) -> ListBundlesResponse:
         """
         List all available bundles.
 
         Returns:
-            BundleListResponse with list of bundle summaries
+            ListBundlesResponse with list of bundle summaries
         """
         url = f"{self.base_url}/bundles"
         response = self.session.get(
@@ -97,7 +97,7 @@ class BundlesAPIClient:
             timeout=self.timeout
         )
         response.raise_for_status()
-        return BundleListResponse(**response.json())
+        return ListBundlesResponse(**response.json())
 
     def download_bundle(self, bundle_id: str, format: str = "zip") -> Iterator[bytes]:
         """
@@ -115,7 +115,7 @@ class BundlesAPIClient:
             requests.exceptions.RequestException: For network/connection errors
         """
         url = f"{self.base_url}/bundles/{bundle_id}/download"
-        params = DownloadBundleParams(format=format).model_dump()
+        params = DownloadBundleRequest(format=format).model_dump()
 
         response = self.session.get(
             url,

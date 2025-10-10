@@ -1,15 +1,12 @@
 """Shared validation logic for paths and hashes."""
 
 
-def validate_sha256_hash(hash_str: str) -> str:
+def validate_sha256_hash(hash_str: str) -> None:
     """
     Validate that a string is a valid SHA-256 hash.
 
     Args:
         hash_str: The hash string to validate
-
-    Returns:
-        The validated hash string (potentially modified in future)
 
     Raises:
         ValueError: If hash is not a valid 64-character lowercase hex string
@@ -20,18 +17,13 @@ def validate_sha256_hash(hash_str: str) -> str:
     if not all(c in '0123456789abcdef' for c in hash_str):
         raise ValueError("Hash must be lowercase hexadecimal (0-9, a-f)")
 
-    return hash_str
 
-
-def validate_relative_path(path: str) -> str:
+def validate_relative_path(path: str) -> None:
     """
     Validate that a path is relative and safe.
 
     Args:
         path: The path to validate
-
-    Returns:
-        The validated path (potentially normalized in future)
 
     Raises:
         ValueError: If path is not relative or contains directory traversal
@@ -44,5 +36,3 @@ def validate_relative_path(path: str) -> str:
 
     if not path:
         raise ValueError("Path cannot be empty")
-
-    return path

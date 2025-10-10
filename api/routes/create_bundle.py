@@ -3,10 +3,9 @@
 import json
 from datetime import datetime
 from pathlib import Path
-from fastapi import APIRouter, HTTPException
-from fastapi.responses import JSONResponse
+from fastapi import APIRouter, HTTPException, Response
 from ulid import ULID
-from shared.api_contracts.create_bundle import BundleManifestDraft, BundleCreateResponse
+from shared.api_contracts.create_bundle import CreateBundleRequest, CreateBundleResponse
 from api.storage import blob_exists
 from shared.config import MANIFESTS_DIR, SUMMARIES_DIR
 from shared.merkle import compute_merkle_root
@@ -14,8 +13,8 @@ from shared.merkle import compute_merkle_root
 router = APIRouter()
 
 
-@router.post("/bundles")
-async def create_bundle(request: BundleManifestDraft):
+@router.post("/bundles", response_model=CreateBundleResponse, status_code=201)
+async def create_bundle(request: CreateBundleRequest):
     """
     Create a bundle from already-uploaded blobs.
 
@@ -23,10 +22,10 @@ async def create_bundle(request: BundleManifestDraft):
     All referenced blobs must already exist in storage.
 
     Args:
-        request: BundleManifestDraft containing files array and merkle_root
+        request: CreateBundleRequest containing files array and merkle_root
 
     Returns:
-        BundleCreateResponse with bundle ID and creation timestamp
+        CreateBundleResponse with bundle ID and creation timestamp
 
     Raises:
         HTTPException:
@@ -106,13 +105,10 @@ async def create_bundle(request: BundleManifestDraft):
                 manifest_path.unlink()
             raise
 
-        return JSONResponse(
-            status_code=201,
-            content={
-                "id": bundle_id,
-                "created_at": created_at,
-                "merkle_root": merkle_root
-            }
+        return CreateBundleResponse(
+            id=bundle_id,
+            created_at=created_at,
+            merkle_root=merkle_root
         )
 
     except HTTPException:
