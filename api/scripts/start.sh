@@ -4,7 +4,7 @@ set -e
 # Start script for fal-bundles API
 # Ensures dependencies are installed and starts the development server
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/utils.sh"
+source "$SCRIPT_DIR/dependencies.sh"
 
 echo "Starting fal-bundles API server..."
 echo "  Host: $HOST"

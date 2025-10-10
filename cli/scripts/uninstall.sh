@@ -29,8 +29,7 @@ while [[ $# -gt 0 ]]; do
             ;;
     esac
 done
-
-WRAPPER_PATH="$INSTALL_DIR/$WRAPPER_NAME"
+WRAPPER_PATH="$INSTALL_DIR/$WRAPPER_NAME" # must come after argument parsing
 
 echo "==> Uninstalling fal-bundles CLI wrapper..."
 echo "   Install directory: $INSTALL_DIR"

@@ -3,14 +3,15 @@ set -euo pipefail
 
 # Project configuration
 export SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-export PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-export VENV_DIR="$PROJECT_ROOT/api/.venv"
+export CLI_DIR="$(dirname "$SCRIPT_DIR")"
+export PROJECT_ROOT="$(dirname "$CLI_DIR")"
+export VENV_DIR="$CLI_DIR/.venv"
 export INSTALL_MARKER="$VENV_DIR/.last_install"
 
 # Application configuration
-export DATA_DIR="${DATA_DIR:-$PROJECT_ROOT/api/.data}"
-export HOST="${HOST:-0.0.0.0}"
-export PORT="${PORT:-8000}"
+export PYTHONPATH="$PROJECT_ROOT"
+export FAL_BUNDLES_API_URL="${FAL_BUNDLES_API_URL:-http://localhost:8000}"
+export FAL_BUNDLES_TIMEOUT="${FAL_BUNDLES_TIMEOUT:-300}"
 
 # Activate venv
 if [ ! -d "$VENV_DIR" ]; then
@@ -18,7 +19,6 @@ if [ ! -d "$VENV_DIR" ]; then
     python3 -m venv "$VENV_DIR"
 fi
 source "$VENV_DIR/bin/activate"
-echo "Activated virtual environment at $VENV_DIR"
 
 # Check if dependencies need updating
 needs_update=false
@@ -26,11 +26,11 @@ if [ ! -f "$INSTALL_MARKER" ]; then
     needs_update=true
 fi
 # requirements update
-if [ -f "$PROJECT_ROOT/api/requirements.txt" ] && [ "$PROJECT_ROOT/api/requirements.txt" -nt "$INSTALL_MARKER" ]; then
+if [ -f "$CLI_DIR/requirements.txt" ] && [ "$CLI_DIR/requirements.txt" -nt "$INSTALL_MARKER" ]; then
     needs_update=true
 fi
 # test requirements update
-if [ -f "$PROJECT_ROOT/api/tests/requirements.txt" ] && [ "$PROJECT_ROOT/api/tests/requirements.txt" -nt "$INSTALL_MARKER" ]; then
+if [ -f "$CLI_DIR/tests/requirements.txt" ] && [ "$CLI_DIR/tests/requirements.txt" -nt "$INSTALL_MARKER" ]; then
     needs_update=true
 fi
 
@@ -38,9 +38,9 @@ fi
 if [ "$needs_update" = true ]; then
     echo "Updating dependencies..."
     pip install -q --upgrade pip
-    pip install -q -r "$PROJECT_ROOT/api/requirements.txt"
+    pip install -q -r "$CLI_DIR/requirements.txt"
     echo "Updating test dependencies..."
-    pip install -q -r "$PROJECT_ROOT/api/tests/requirements.txt"
+    pip install -q -r "$CLI_DIR/tests/requirements.txt"
     touch "$INSTALL_MARKER"
     echo "✓ Dependencies updated"
 fi

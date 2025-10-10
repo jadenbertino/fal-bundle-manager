@@ -5,7 +5,7 @@ set -e
 # Runs pytest with the project's virtual environment
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/utils.sh"
+source "$SCRIPT_DIR/dependencies.sh"
 
 # Run pytest with any additional arguments passed to the script
 echo "Running tests..."

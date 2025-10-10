@@ -21,10 +21,10 @@ The server will auto-install dependencies and run on http://localhost:8000
 
 ```bash
 # Install the CLI wrapper
-./cli/install.sh
+./cli/scripts/install.sh
 
 # Or with custom wrapper name
-./cli/install.sh --name fal-bundles
+./cli/scripts/install.sh --name fal-bundles
 ```
 
 ### 3. Use the CLI
