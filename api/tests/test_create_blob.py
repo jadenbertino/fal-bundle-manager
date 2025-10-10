@@ -2,7 +2,7 @@ import requests
 from pathlib import Path
 from api.storage import calculate_sha256
 from api.tests.helpers import BASE_URL
-from shared.config import get_blobs_dir
+from shared.config import BLOBS_DIR
 
 
 def test_create_blob_new():
@@ -22,7 +22,7 @@ def test_create_blob_new():
     assert data["hash"] == hash_val
 
     # Verify blob exists in storage
-    blob_path = get_blobs_dir() / hash_val[:2] / hash_val[2:4] / hash_val
+    blob_path = BLOBS_DIR / hash_val[:2] / hash_val[2:4] / hash_val
     assert blob_path.exists()
     assert blob_path.read_bytes() == content
 
@@ -56,7 +56,7 @@ def test_create_blob_idempotent():
     assert data["hash"] == hash_val
 
     # Cleanup
-    blob_path = get_blobs_dir() / hash_val[:2] / hash_val[2:4] / hash_val
+    blob_path = BLOBS_DIR / hash_val[:2] / hash_val[2:4] / hash_val
     blob_path.unlink()
 
 
@@ -73,7 +73,7 @@ def test_create_blob_hash_mismatch():
     assert response.status_code == 409
 
     # Verify blob was not stored
-    blob_path = get_blobs_dir() / wrong_hash[:2] / wrong_hash[2:4] / wrong_hash
+    blob_path = BLOBS_DIR / wrong_hash[:2] / wrong_hash[2:4] / wrong_hash
     assert not blob_path.exists()
 
 
@@ -151,7 +151,7 @@ def test_create_blob_empty_file():
     hash_val = calculate_sha256(content)
 
     # Delete blob if it exists from previous test
-    blob_path = get_blobs_dir() / hash_val[:2] / hash_val[2:4] / hash_val
+    blob_path = BLOBS_DIR / hash_val[:2] / hash_val[2:4] / hash_val
     if blob_path.exists():
         blob_path.unlink()
 
@@ -187,7 +187,7 @@ def test_create_blob_large_file():
     assert data["hash"] == hash_val
 
     # Verify content is correct
-    blob_path = get_blobs_dir() / hash_val[:2] / hash_val[2:4] / hash_val
+    blob_path = BLOBS_DIR / hash_val[:2] / hash_val[2:4] / hash_val
     assert blob_path.exists()
     assert blob_path.read_bytes() == content
 
@@ -208,7 +208,7 @@ def test_create_blob_fanout_structure():
     assert response.status_code == 201
 
     # Verify fanout structure: data/blobs/{aa}/{bb}/{full_hash}
-    expected_path = get_blobs_dir() / hash_val[:2] / hash_val[2:4] / hash_val
+    expected_path = BLOBS_DIR / hash_val[:2] / hash_val[2:4] / hash_val
     assert expected_path.exists()
     assert expected_path.parent.parent.name == hash_val[:2]
     assert expected_path.parent.name == hash_val[2:4]

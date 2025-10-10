@@ -8,7 +8,7 @@ from fastapi.responses import JSONResponse
 from ulid import ULID
 from shared.api_contracts.create_bundle import BundleManifestDraft, BundleCreateResponse
 from api.storage import blob_exists
-from shared.config import get_bundle_manifests_dir, get_bundle_summaries_dir
+from shared.config import MANIFESTS_DIR, SUMMARIES_DIR
 from shared.merkle import compute_merkle_root
 
 router = APIRouter()
@@ -78,15 +78,13 @@ async def create_bundle(request: BundleManifestDraft):
         }
 
         # Write manifest to storage
-        manifests_dir = get_bundle_manifests_dir()
-        manifests_dir.mkdir(parents=True, exist_ok=True)
-        manifest_path = manifests_dir / f"{bundle_id}.json"
+        MANIFESTS_DIR.mkdir(parents=True, exist_ok=True)
+        manifest_path = MANIFESTS_DIR / f"{bundle_id}.json"
         manifest_temp_path = manifest_path.with_suffix(".tmp")
 
         # Write summary to storage
-        summaries_dir = get_bundle_summaries_dir()
-        summaries_dir.mkdir(parents=True, exist_ok=True)
-        summary_path = summaries_dir / f"{bundle_id}.json"
+        SUMMARIES_DIR.mkdir(parents=True, exist_ok=True)
+        summary_path = SUMMARIES_DIR / f"{bundle_id}.json"
         summary_temp_path = summary_path.with_suffix(".tmp")
         
         try:

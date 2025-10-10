@@ -5,7 +5,6 @@ from pathlib import Path
 from api.storage import calculate_sha256
 from shared.merkle import compute_merkle_root
 from shared.types import Blob
-from shared.config import get_data_dir
 
 
 BASE_URL = "http://localhost:8000"

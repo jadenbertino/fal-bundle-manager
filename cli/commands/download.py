@@ -30,12 +30,6 @@ def generate_filename(bundle_id: str, format: str) -> str:
 def handle_file_conflict(filepath: Path) -> Path:
     """
     Handle file conflicts by auto-renaming.
-
-    Args:
-        filepath: The desired file path
-
-    Returns:
-        A non-conflicting file path
     """
     if not filepath.exists():
         return filepath

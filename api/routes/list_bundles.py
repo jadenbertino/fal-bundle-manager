@@ -5,7 +5,7 @@ from pathlib import Path
 from fastapi import APIRouter, HTTPException
 from shared.api_contracts.list_bundles import BundleListResponse
 from shared.types import BundleSummary, Blob
-from shared.config import get_bundle_summaries_dir, get_bundle_manifests_dir
+from shared.config import SUMMARIES_DIR, MANIFESTS_DIR
 from shared.merkle import compute_merkle_root
 
 router = APIRouter()
@@ -27,15 +27,14 @@ async def list_bundles():
             - 500: Storage read failure
     """
     try:
-        summaries_dir = get_bundle_summaries_dir()
         bundles = []
 
         # Validate summaries directory exists
-        if not summaries_dir.exists():
+        if not SUMMARIES_DIR.exists():
             return BundleListResponse(bundles=[])
 
         # Enumerate all .json files in summaries directory
-        for summary_path in summaries_dir.glob("*.json"):
+        for summary_path in SUMMARIES_DIR.glob("*.json"):
             try:
                 # Read summary file content
                 summary_text = summary_path.read_text()
@@ -46,8 +45,7 @@ async def list_bundles():
                 merkle_root = summary.get("merkle_root")
                 if not merkle_root:
                     try:
-                        manifests_dir = get_bundle_manifests_dir()
-                        manifest_path = manifests_dir / f"{summary['id']}.json"
+                        manifest_path = MANIFESTS_DIR / f"{summary['id']}.json"
                         manifest = json.loads(manifest_path.read_text())
                         merkle_root = manifest.get("merkle_root")
                         if not merkle_root:

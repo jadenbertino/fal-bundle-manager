@@ -9,7 +9,7 @@ from fastapi.responses import JSONResponse
 from shared.api_contracts.create_blob import BlobUploadResponse
 from shared.validation import validate_sha256_hash
 from api.storage import blob_exists, to_blob_path
-from shared.config import get_tmp_dir, MAX_UPLOAD_BYTES
+from shared.config import TMP_DIR, MAX_UPLOAD_BYTES
 
 router = APIRouter()
 
@@ -62,11 +62,10 @@ async def upload_blob(
         )
 
     # Prepare temporary file for upload
-    tmp_dir = get_tmp_dir()
-    tmp_dir.mkdir(parents=True, exist_ok=True)
+    TMP_DIR.mkdir(parents=True, exist_ok=True)
     timestamp = datetime.utcnow().isoformat().replace(":", "-")
     tmp_filename = f"{timestamp}_{uuid.uuid4()}"
-    tmp_path = tmp_dir / tmp_filename
+    tmp_path = TMP_DIR / tmp_filename
 
     try:
         # Stream file to temp location + hash

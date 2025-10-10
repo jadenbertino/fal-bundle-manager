@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Literal
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import StreamingResponse
-from shared.config import get_bundle_manifests_dir
+from shared.config import MANIFESTS_DIR
 from api.storage import to_blob_path
 
 router = APIRouter()
@@ -43,8 +43,7 @@ async def download_bundle(
             )
 
         # Validate bundle manifest exists
-        manifests_dir = get_bundle_manifests_dir()
-        manifest_path = manifests_dir / f"{bundle_id}.json"
+        manifest_path = MANIFESTS_DIR / f"{bundle_id}.json"
         if not manifest_path.exists():
             raise HTTPException(
                 status_code=404,
