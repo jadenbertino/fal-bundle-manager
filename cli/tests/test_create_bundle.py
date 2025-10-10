@@ -14,6 +14,7 @@ from cli.tests.fixtures import get_fixture_path, FIXTURE_FILES, FIXTURE_DIRS
 from shared.types import Blob
 from shared.api_contracts.preflight import PreflightResponse
 from shared.api_contracts.create_bundle import CreateBundleResponse
+from shared.merkle import compute_merkle_root
 
 
 # ============================================================================
@@ -171,16 +172,34 @@ class TestBundleCreationWithMocks:
         file_hash = hash_file_sha256(file)
         api_client.preflight.return_value = PreflightResponse(missing=[file_hash])
         api_client.upload_blob.return_value = True
-        # Return response with merkle root from request
-        api_client.create_bundle.side_effect = lambda req: CreateBundleResponse(
-            id="test-bundle-id",
-            created_at="2024-01-01T00:00:00Z",
-            merkle_root=req.merkle_root,
+
+        # Compute expected merkle root from actual file
+        with open(file, 'rb') as f:
+            content = f.read()
+        expected_blob = Blob(
+            bundle_path="file1.txt",
+            size_bytes=len(content),
+            hash=file_hash,
+            hash_algo="sha256"
         )
+        expected_merkle = compute_merkle_root([expected_blob])
+
+        # Verify merkle root matches and return it
+        def validate_and_respond(req):
+            assert req.merkle_root == expected_merkle, f"Merkle mismatch: expected {expected_merkle}, got {req.merkle_root}"
+            return CreateBundleResponse(
+                id="test-bundle-id",
+                created_at="2024-01-01T00:00:00Z",
+                merkle_root=req.merkle_root,
+            )
+        api_client.create_bundle.side_effect = validate_and_respond
 
         result = create_bundle([str(file)], api_client)
 
-        assert result.id == "test-bundle-id"
+        # Assert on structure rather than specific values
+        assert result.id  # Just verify it exists
+        assert result.created_at  # Just verify it exists
+        assert result.merkle_root == expected_merkle
         assert api_client.preflight.called
         assert api_client.upload_blob.called
         assert api_client.create_bundle.called
@@ -192,16 +211,35 @@ class TestBundleCreationWithMocks:
         # Mock API client
         api_client = Mock()
         api_client.preflight.return_value = PreflightResponse(missing=[])
-        # Return response with merkle root from request
-        api_client.create_bundle.side_effect = lambda req: CreateBundleResponse(
-            id="test-bundle-id",
-            created_at="2024-01-01T00:00:00Z",
-            merkle_root=req.merkle_root,
+
+        # Compute expected merkle root from actual file
+        file_hash = hash_file_sha256(file)
+        with open(file, 'rb') as f:
+            content = f.read()
+        expected_blob = Blob(
+            bundle_path="file1.txt",
+            size_bytes=len(content),
+            hash=file_hash,
+            hash_algo="sha256"
         )
+        expected_merkle = compute_merkle_root([expected_blob])
+
+        # Verify merkle root matches and return it
+        def validate_and_respond(req):
+            assert req.merkle_root == expected_merkle, f"Merkle mismatch: expected {expected_merkle}, got {req.merkle_root}"
+            return CreateBundleResponse(
+                id="test-bundle-id",
+                created_at="2024-01-01T00:00:00Z",
+                merkle_root=req.merkle_root,
+            )
+        api_client.create_bundle.side_effect = validate_and_respond
 
         result = create_bundle([str(file)], api_client)
 
-        assert result.id == "test-bundle-id"
+        # Assert on structure rather than specific values
+        assert result.id
+        assert result.created_at
+        assert result.merkle_root == expected_merkle
         assert api_client.preflight.called
         assert not api_client.upload_blob.called  # Should not upload
         assert api_client.create_bundle.called
@@ -218,12 +256,30 @@ class TestBundleCreationWithMocks:
         api_client = Mock()
         api_client.preflight.return_value = PreflightResponse(missing=[hash2])
         api_client.upload_blob.return_value = True
-        # Return response with merkle root from request
-        api_client.create_bundle.side_effect = lambda req: CreateBundleResponse(
-            id="test-bundle-id",
-            created_at="2024-01-01T00:00:00Z",
-            merkle_root=req.merkle_root,
-        )
+
+        # Compute expected merkle root from actual files
+        blobs = []
+        for file_path in [file1, file2]:
+            with open(file_path, 'rb') as f:
+                content = f.read()
+            file_hash = hash_file_sha256(file_path)
+            blobs.append(Blob(
+                bundle_path=file_path.name,
+                size_bytes=len(content),
+                hash=file_hash,
+                hash_algo="sha256"
+            ))
+        expected_merkle = compute_merkle_root(blobs)
+
+        # Verify merkle root matches and return it
+        def validate_and_respond(req):
+            assert req.merkle_root == expected_merkle, f"Merkle mismatch: expected {expected_merkle}, got {req.merkle_root}"
+            return CreateBundleResponse(
+                id="test-bundle-id",
+                created_at="2024-01-01T00:00:00Z",
+                merkle_root=req.merkle_root,
+            )
+        api_client.create_bundle.side_effect = validate_and_respond
 
         result = create_bundle([str(file1), str(file2)], api_client)
 
@@ -232,6 +288,7 @@ class TestBundleCreationWithMocks:
         # Check that file2's hash was uploaded
         uploaded_hash = api_client.upload_blob.call_args[0][0]
         assert uploaded_hash == hash2
+        assert result.merkle_root == expected_merkle
 
     def test_bundle_creation_multiple_files(self):
         """Test creating a bundle with multiple files."""
@@ -239,12 +296,29 @@ class TestBundleCreationWithMocks:
 
         api_client = Mock()
         api_client.preflight.return_value = PreflightResponse(missing=[])
-        # Return response with merkle root from request
-        api_client.create_bundle.side_effect = lambda req: CreateBundleResponse(
-            id="test-bundle-id",
-            created_at="2024-01-01T00:00:00Z",
-            merkle_root=req.merkle_root,
-        )
+
+        # Compute expected merkle root from actual files
+        discovered = discover_files([str(configs_dir)])
+        blobs = []
+        for file in discovered:
+            file_hash = hash_file_sha256(file.absolute_path)
+            blobs.append(Blob(
+                bundle_path=file.relative_path,
+                size_bytes=file.size_bytes,
+                hash=file_hash,
+                hash_algo="sha256"
+            ))
+        expected_merkle = compute_merkle_root(blobs)
+
+        # Verify merkle root matches and return it
+        def validate_and_respond(req):
+            assert req.merkle_root == expected_merkle, f"Merkle mismatch: expected {expected_merkle}, got {req.merkle_root}"
+            return CreateBundleResponse(
+                id="test-bundle-id",
+                created_at="2024-01-01T00:00:00Z",
+                merkle_root=req.merkle_root,
+            )
+        api_client.create_bundle.side_effect = validate_and_respond
 
         result = create_bundle([str(configs_dir)], api_client)
 
@@ -254,6 +328,7 @@ class TestBundleCreationWithMocks:
         paths = {f.bundle_path for f in manifest.files}
         # Paths will include the directory name prefix
         assert any("app.yaml" in p for p in paths) or any("database.json" in p for p in paths)
+        assert result.merkle_root == expected_merkle
 
 
 # ============================================================================
@@ -271,24 +346,41 @@ class TestBundleCreationIntegration:
         # Mock API client
         api_client = Mock()
 
-        # Get hashes of actual files
+        # Get hashes of actual files and compute expected merkle root
         discovered = discover_files([str(configs_dir)])
         hashes = [hash_file_sha256(f.absolute_path) for f in discovered]
 
+        blobs = []
+        for file in discovered:
+            file_hash = hash_file_sha256(file.absolute_path)
+            blobs.append(Blob(
+                bundle_path=file.relative_path,
+                size_bytes=file.size_bytes,
+                hash=file_hash,
+                hash_algo="sha256"
+            ))
+        expected_merkle = compute_merkle_root(blobs)
+
         api_client.preflight.return_value = PreflightResponse(missing=hashes)
         api_client.upload_blob.return_value = True
-        # Return response with merkle root from request
-        api_client.create_bundle.side_effect = lambda req: CreateBundleResponse(
-            id="bundle-123",
-            created_at="2024-01-01T00:00:00Z",
-            merkle_root=req.merkle_root,
-        )
+
+        # Verify merkle root matches and return it
+        def validate_and_respond(req):
+            assert req.merkle_root == expected_merkle, f"Merkle mismatch: expected {expected_merkle}, got {req.merkle_root}"
+            return CreateBundleResponse(
+                id="bundle-123",
+                created_at="2024-01-01T00:00:00Z",
+                merkle_root=req.merkle_root,
+            )
+        api_client.create_bundle.side_effect = validate_and_respond
 
         # Execute
         result = create_bundle([str(configs_dir)], api_client)
 
         # Verify
-        assert result.id == "bundle-123"
+        assert result.id  # Just verify it exists
+        assert result.created_at  # Just verify it exists
+        assert result.merkle_root == expected_merkle
         assert api_client.preflight.call_count == 1
         assert api_client.upload_blob.call_count == len(hashes)
         assert api_client.create_bundle.call_count == 1
