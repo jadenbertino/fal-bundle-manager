@@ -13,7 +13,7 @@ from cli.tests.fixtures import get_fixture_path
 from shared.merkle import compute_merkle_root
 from shared.types import Blob
 from cli.core.file_discovery import discover_files
-from cli.core.hashing import hash_file_sha256
+from shared.hash import hash_file_content
 import hashlib
 
 
@@ -47,7 +47,7 @@ def compute_real_merkle_root(input_paths):
     discovered = discover_files([str(p) for p in input_paths])
     blobs = []
     for file in discovered:
-        file_hash = hash_file_sha256(file.absolute_path)
+        file_hash = hash_file_content(file.absolute_path)
         blob = Blob(
             bundle_path=file.relative_path,
             size_bytes=file.size_bytes,

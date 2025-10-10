@@ -8,7 +8,7 @@ import hashlib
 from pathlib import Path
 from unittest.mock import Mock, MagicMock
 from cli.core.file_discovery import discover_files, DiscoveredFile
-from cli.core.hashing import hash_file_sha256
+from shared.hash import hash_file_content
 from cli.core.bundler import create_bundle
 from cli.tests.fixtures import get_fixture_path, FIXTURE_FILES, FIXTURE_DIRS
 from shared.types import Blob
@@ -82,7 +82,7 @@ class TestHashing:
         """Test SHA-256 calculation for a small file."""
         file = get_fixture_path("file1")
 
-        result = hash_file_sha256(file)
+        result = hash_file_content(file)
 
         # Verify hash properties
         assert len(result) == 64
@@ -93,7 +93,7 @@ class TestHashing:
         """Test SHA-256 calculation for a large file (streaming)."""
         file = get_fixture_path("large")
 
-        result = hash_file_sha256(file)
+        result = hash_file_content(file)
 
         # Verify hash properties
         assert len(result) == 64
@@ -103,7 +103,7 @@ class TestHashing:
         """Test SHA-256 calculation for an empty file."""
         file = get_fixture_path("empty")
 
-        result = hash_file_sha256(file)
+        result = hash_file_content(file)
 
         expected = hashlib.sha256(b"").hexdigest()
         assert result == expected
@@ -112,8 +112,8 @@ class TestHashing:
         """Test that hashing the same file twice gives the same result."""
         file = get_fixture_path("file1")
 
-        result1 = hash_file_sha256(file)
-        result2 = hash_file_sha256(file)
+        result1 = hash_file_content(file)
+        result2 = hash_file_content(file)
 
         assert result1 == result2
 
@@ -169,7 +169,7 @@ class TestBundleCreationWithMocks:
 
         # Mock API client
         api_client = Mock()
-        file_hash = hash_file_sha256(file)
+        file_hash = hash_file_content(file)
         api_client.preflight.return_value = PreflightResponse(missing=[file_hash])
         api_client.upload_blob.return_value = True
 
@@ -213,7 +213,7 @@ class TestBundleCreationWithMocks:
         api_client.preflight.return_value = PreflightResponse(missing=[])
 
         # Compute expected merkle root from actual file
-        file_hash = hash_file_sha256(file)
+        file_hash = hash_file_content(file)
         with open(file, 'rb') as f:
             content = f.read()
         expected_blob = Blob(
@@ -249,8 +249,8 @@ class TestBundleCreationWithMocks:
         file1 = get_fixture_path("file1")
         file2 = get_fixture_path("file2")
 
-        hash1 = hash_file_sha256(file1)
-        hash2 = hash_file_sha256(file2)
+        hash1 = hash_file_content(file1)
+        hash2 = hash_file_content(file2)
 
         # Mock API client - only file2 is missing
         api_client = Mock()
@@ -262,7 +262,7 @@ class TestBundleCreationWithMocks:
         for file_path in [file1, file2]:
             with open(file_path, 'rb') as f:
                 content = f.read()
-            file_hash = hash_file_sha256(file_path)
+            file_hash = hash_file_content(file_path)
             blobs.append(Blob(
                 bundle_path=file_path.name,
                 size_bytes=len(content),
@@ -301,7 +301,7 @@ class TestBundleCreationWithMocks:
         discovered = discover_files([str(configs_dir)])
         blobs = []
         for file in discovered:
-            file_hash = hash_file_sha256(file.absolute_path)
+            file_hash = hash_file_content(file.absolute_path)
             blobs.append(Blob(
                 bundle_path=file.relative_path,
                 size_bytes=file.size_bytes,
@@ -348,11 +348,11 @@ class TestBundleCreationIntegration:
 
         # Get hashes of actual files and compute expected merkle root
         discovered = discover_files([str(configs_dir)])
-        hashes = [hash_file_sha256(f.absolute_path) for f in discovered]
+        hashes = [hash_file_content(f.absolute_path) for f in discovered]
 
         blobs = []
         for file in discovered:
-            file_hash = hash_file_sha256(file.absolute_path)
+            file_hash = hash_file_content(file.absolute_path)
             blobs.append(Blob(
                 bundle_path=file.relative_path,
                 size_bytes=file.size_bytes,

@@ -2,7 +2,7 @@
 
 import requests
 from pathlib import Path
-from api.storage import calculate_sha256
+from shared.hash import hash_bytes
 from shared.merkle import compute_merkle_root
 from shared.types import Blob
 
@@ -23,7 +23,7 @@ def create_blob(content: bytes) -> str:
     Raises:
         AssertionError: If the upload fails
     """
-    hash_val = calculate_sha256(content)
+    hash_val = hash_bytes(content)
     response = requests.put(
         f"{BASE_URL}/blobs/{hash_val}",
         params={"size_bytes": len(content)},

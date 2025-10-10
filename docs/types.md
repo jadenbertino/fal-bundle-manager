@@ -40,7 +40,7 @@ type BundleSummary = {
   hash_algo: "sha256",           // Hash algorithm used
   file_count: number,            // Number of files in bundle
   total_bytes: number,           // Total size of all files in bytes
-  merkle_root: string            // SHA-256 Merkle root over bundle contents
+  merkle_root: string            // SHA-256 binary Merkle root over bundle contents
 }
 ```
 

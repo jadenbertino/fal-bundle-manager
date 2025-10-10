@@ -1,4 +1,4 @@
-"""Merkle tree utilities shared across components."""
+"""Binary Merkle tree utilities shared across components."""
 
 from __future__ import annotations
 
@@ -23,10 +23,10 @@ def _normalize_blob(blob: _BlobLike | dict) -> tuple[str, str]:
 
 
 def compute_merkle_root(blobs: Iterable[_BlobLike | dict]) -> str:
-    """Compute a deterministic Merkle root for bundle files.
+    """Compute a deterministic binary Merkle root for bundle files.
 
     Leaves are created by hashing the bundle path and content hash together.
-    The tree is built by pairing adjacent leaves (duplicating the final leaf
+    The binary tree is built by pairing adjacent leaves (duplicating the final leaf
     when necessary) and hashing their concatenated digests until a single root
     remains. For empty collections, the root is the SHA-256 of an empty byte
     string.

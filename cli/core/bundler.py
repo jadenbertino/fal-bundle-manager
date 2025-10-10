@@ -9,7 +9,7 @@ from shared.api_contracts.preflight import PreflightRequest
 from shared.api_contracts.create_bundle import CreateBundleRequest, CreateBundleResponse
 from shared.merkle import compute_merkle_root
 from cli.core.file_discovery import discover_files
-from cli.core.hashing import hash_file_sha256
+from shared.hash import hash_file_content
 
 
 def create_bundle(
@@ -48,7 +48,7 @@ def create_bundle(
     # Step 2: Convert files to list of blobs
     blobs: list[Blob] = []
     for file in discovered_files:
-        file_hash = hash_file_sha256(file.absolute_path)
+        file_hash = hash_file_content(file.absolute_path)
         blob = Blob(
             bundle_path=file.relative_path,
             size_bytes=file.size_bytes,
