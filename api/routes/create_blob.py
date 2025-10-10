@@ -8,7 +8,7 @@ from fastapi import APIRouter, HTTPException, Request, Query
 from fastapi.responses import JSONResponse
 from shared.api_contracts.create_blob import BlobUploadResponse
 from shared.validation import validate_sha256_hash
-from api.storage import blob_exists, get_blob_path
+from api.storage import blob_exists, to_blob_path
 from shared.config import get_tmp_dir, MAX_UPLOAD_BYTES
 
 router = APIRouter()
@@ -47,14 +47,14 @@ async def upload_blob(
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
 
-    # Check size limit
+    # Validate blob under size limit
     if size_bytes > MAX_UPLOAD_BYTES:
         raise HTTPException(
             status_code=413,
             detail=f"File size {size_bytes} exceeds maximum allowed {MAX_UPLOAD_BYTES}"
         )
 
-    # Check if blob already exists (idempotency)
+    # Validate blob isn't already uploaded
     if blob_exists(hash):
         return JSONResponse(
             status_code=200,
@@ -69,7 +69,7 @@ async def upload_blob(
     tmp_path = tmp_dir / tmp_filename
 
     try:
-        # Stream file to temp location while calculating hash
+        # Stream file to temp location + hash
         hasher = hashlib.sha256()
         bytes_written = 0
         with open(tmp_path, "wb") as f:
@@ -78,7 +78,7 @@ async def upload_blob(
                 f.write(chunk)
                 bytes_written += len(chunk)
 
-        # Verify hash matches
+        # Validate hash matches
         calculated_hash = hasher.hexdigest()
         if calculated_hash != hash:
             tmp_path.unlink()  # Remove invalid file
@@ -88,7 +88,7 @@ async def upload_blob(
             )
 
         # Move to final location with fanout structure
-        blob_path = get_blob_path(hash)
+        blob_path = to_blob_path(hash)
         blob_path.parent.mkdir(parents=True, exist_ok=True)
         tmp_path.rename(blob_path)
 

@@ -8,7 +8,7 @@ from typing import Literal
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import StreamingResponse
 from shared.config import get_bundle_manifests_dir
-from api.storage import get_blob_path
+from api.storage import to_blob_path
 
 router = APIRouter()
 
@@ -42,10 +42,9 @@ async def download_bundle(
                 detail=f"Unsupported format '{format}'. Only 'zip' is supported."
             )
 
-        # Check if bundle manifest exists
+        # Validate bundle manifest exists
         manifests_dir = get_bundle_manifests_dir()
         manifest_path = manifests_dir / f"{bundle_id}.json"
-
         if not manifest_path.exists():
             raise HTTPException(
                 status_code=404,
@@ -62,21 +61,18 @@ async def download_bundle(
                 detail=f"Failed to read bundle manifest: {str(e)}"
             )
 
-        # Verify all blobs exist and collect paths
+        # Validate file list points to existing blobs
         files = manifest.get("files", [])
-        blob_mappings = []  # [(blob_path, bundle_path), ...]
-
+        blob_mappings = []
         for file_info in files:
             blob_hash = file_info["hash"]
-            bundle_path = file_info["bundle_path"]
-            blob_path = get_blob_path(blob_hash)
-
+            blob_path = to_blob_path(blob_hash)
             if not blob_path.exists():
                 raise HTTPException(
                     status_code=500,
                     detail=f"Missing blob: {blob_hash}"
                 )
-
+            bundle_path = file_info["bundle_path"]
             blob_mappings.append((blob_path, bundle_path))
 
         # Create ZIP archive in memory

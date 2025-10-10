@@ -46,10 +46,8 @@ async def create_bundle(request: BundleManifestDraft):
                 detail=f"Missing blobs: {', '.join(missing_hashes)}"
             )
 
-        # Generate bundle ID
+        # Generate bundle metadata
         bundle_id = str(ULID())
-
-        # Calculate statistics
         file_count = len(request.files)
         total_bytes = sum(file.size_bytes for file in request.files)
         computed_merkle_root = compute_merkle_root(request.files)
@@ -60,22 +58,8 @@ async def create_bundle(request: BundleManifestDraft):
                 status_code=409,
                 detail=f"Merkle root mismatch: expected {computed_merkle_root}, got {request.merkle_root}"
             )
-        
         merkle_root = computed_merkle_root
-
-        # Create timestamp
         created_at = datetime.utcnow().isoformat() + "Z"
-
-        # Build complete manifest (includes files)
-        manifest = {
-            "id": bundle_id,
-            "created_at": created_at,
-            "hash_algo": request.hash_algo,
-            "files": [file.model_dump() for file in request.files],
-            "file_count": file_count,
-            "total_bytes": total_bytes,
-            "merkle_root": merkle_root
-        }
 
         # Build summary (does NOT include files)
         summary = {
@@ -84,22 +68,27 @@ async def create_bundle(request: BundleManifestDraft):
             "hash_algo": request.hash_algo,
             "file_count": file_count,
             "total_bytes": total_bytes,
-            "merkle_root": merkle_root
+            "merkle_root": merkle_root,
+        }
+
+        # Build complete manifest (includes files)
+        manifest = {
+            **summary,
+            "files": [file.model_dump() for file in request.files],
         }
 
         # Write manifest to storage
         manifests_dir = get_bundle_manifests_dir()
         manifests_dir.mkdir(parents=True, exist_ok=True)
         manifest_path = manifests_dir / f"{bundle_id}.json"
+        manifest_temp_path = manifest_path.with_suffix(".tmp")
 
         # Write summary to storage
         summaries_dir = get_bundle_summaries_dir()
         summaries_dir.mkdir(parents=True, exist_ok=True)
         summary_path = summaries_dir / f"{bundle_id}.json"
-
-        # Atomic write: write to temp file, then rename
-        manifest_temp_path = manifest_path.with_suffix(".tmp")
         summary_temp_path = summary_path.with_suffix(".tmp")
+        
         try:
             # Write manifest
             manifest_temp_path.write_text(json.dumps(manifest, indent=2))
