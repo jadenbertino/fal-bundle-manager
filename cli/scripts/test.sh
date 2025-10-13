@@ -1,8 +1,17 @@
 #!/bin/bash
-set -e
+# Test runner for fal-bundles CLI
+# 
+# Usage: ./test.sh [PYTEST_ARGS...]
+# 
+# This script runs the CLI test suite using pytest.
+# Environment and dependencies are managed automatically via dependencies.sh.
+# 
+# Examples:
+#   ./test.sh                    # Run all tests
+#   ./test.sh -k test_create     # Run specific test
+#   ./test.sh --cov              # Run with coverage
 
-# Test script for fal-bundles CLI
-# Runs pytest with the project's virtual environment
+set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/dependencies.sh"

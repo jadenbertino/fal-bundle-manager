@@ -1,5 +1,14 @@
 #!/bin/bash
-# Run CLI with proper environment setup
+# Run fal-bundles CLI with proper environment setup
+# 
+# Usage: ./run.sh [CLI_ARGS...]
+# 
+# This script handles:
+# - Environment setup via dependencies.sh (venv, PYTHONPATH, etc.)
+# - Running the CLI with all passed arguments
+# - Preserving the program name for help text
+#
+# Used by the installed wrapper script but can also be run directly for development.
 
 set -e
 

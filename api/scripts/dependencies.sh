@@ -1,4 +1,17 @@
 #!/bin/bash
+# Environment setup and dependency management for fal-bundles API
+# 
+# Usage: source dependencies.sh
+# 
+# This script handles:
+# - Project path configuration and exports
+# - Virtual environment creation and activation
+# - Smart dependency updates (only when requirements.txt changes)
+# - Application environment variables (DATA_DIR, HOST, PORT)
+#
+# Designed to be sourced by other scripts (start.sh, test.sh) for consistent
+# environment setup across all API operations.
+
 set -euo pipefail
 
 # Project configuration

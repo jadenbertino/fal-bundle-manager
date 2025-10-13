@@ -1,5 +1,14 @@
 #!/bin/bash
 # Uninstall fal-bundles CLI wrapper
+# 
+# Usage: ./uninstall.sh [--name <wrapper_name>]
+# 
+# This script removes the CLI wrapper from ~/.local/bin.
+# The project files, virtual environment, and dependencies are preserved.
+# 
+# Options:
+#   --name <name>    Wrapper script name to remove (default: fal-bundles)
+#   --help, -h       Show help message
 
 set -e
 

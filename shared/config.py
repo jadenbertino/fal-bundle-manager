@@ -3,11 +3,15 @@
 import os
 from pathlib import Path
 
-# ============================================================================
-# API Server Configuration
-# ============================================================================
-
+# ENV VARS - API
 DATA_DIR = Path(os.getenv("DATA_DIR", "api/.data"))
+MAX_UPLOAD_BYTES = int(os.getenv("MAX_UPLOAD_BYTES", 1024 * 1024 * 1024)) # 1GB default
+
+# ENV VARS - CLI
+API_URL = os.getenv("FAL_BUNDLES_API_URL", "http://localhost:8000")
+API_TIMEOUT = int(os.getenv("FAL_BUNDLES_TIMEOUT", "300"))
+
+# CONFIG - API
 BLOBS_DIR = DATA_DIR / "blobs"
 BUNDLES_DIR = DATA_DIR / "bundles"
 MANIFESTS_DIR = BUNDLES_DIR / "manifests"
@@ -20,15 +24,3 @@ def ensure_directories():
     for dir in DIRS:
         if not dir.exists():
             dir.mkdir(parents=True, exist_ok=True)
-
-
-# Maximum upload size
-ONE_GB = 1024 * 1024 * 1024
-MAX_UPLOAD_BYTES = int(os.getenv("MAX_UPLOAD_BYTES", ONE_GB))
-
-# ============================================================================
-# CLI Configuration
-# ============================================================================
-
-API_URL = os.getenv("FAL_BUNDLES_API_URL", "http://localhost:8000")
-API_TIMEOUT = int(os.getenv("FAL_BUNDLES_TIMEOUT", "300"))
