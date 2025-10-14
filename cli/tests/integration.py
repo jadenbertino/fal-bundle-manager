@@ -19,8 +19,8 @@ from unittest.mock import Mock, patch, MagicMock
 from cli.__main__ import cli
 from shared.types import Blob, BundleSummary, BundleManifest
 from shared.api_contracts.preflight import PreflightResponse
-from shared.api_contracts.create_bundle import BundleCreateResponse
-from shared.api_contracts.list_bundles import BundleListResponse
+from shared.api_contracts.create_bundle import CreateBundleResponse
+from shared.api_contracts.list_bundles import ListBundlesResponse
 from shared.merkle import compute_merkle_root
 from cli.tests.fixtures import FIXTURES_DIR
 
@@ -45,14 +45,14 @@ class TestIntegrationScenarios:
         mock.upload_blob.return_value = True
         
         # Mock create bundle to return a response
-        mock.create_bundle.return_value = BundleCreateResponse(
+        mock.create_bundle.return_value = CreateBundleResponse(
             id="01HQZX123ABC456DEF789GHI",
             created_at="2024-01-15T10:30:00Z",
             merkle_root="a" * 64  # Will be overridden in tests
         )
         
         # Mock list bundles
-        mock.list_bundles.return_value = BundleListResponse(bundles=[])
+        mock.list_bundles.return_value = ListBundlesResponse(bundles=[])
         
         # Mock download bundle
         mock.download_bundle.return_value = iter([b"test", b"data"])
@@ -163,7 +163,7 @@ class TestIntegrationScenarios:
             expected_merkle = self.compute_expected_merkle_root({
                 "test": {"path": str(test_file), "content": "Hello, World!", "size": 13}
             })
-            mock_api_client.create_bundle.return_value = BundleCreateResponse(
+            mock_api_client.create_bundle.return_value = CreateBundleResponse(
                 id="01HQZX123ABC456DEF789GHI",
                 created_at="2024-01-15T10:30:00Z",
                 merkle_root=expected_merkle
@@ -176,7 +176,7 @@ class TestIntegrationScenarios:
             assert "01HQZX123ABC456DEF789GHI" in result.output
             
             # 2. List bundles
-            mock_api_client.list_bundles.return_value = BundleListResponse(
+            mock_api_client.list_bundles.return_value = ListBundlesResponse(
                 bundles=[
                     BundleSummary(
                         id="01HQZX123ABC456DEF789GHI",
@@ -238,7 +238,7 @@ class TestIntegrationScenarios:
                 "model": {"path": str(models_dir / "model.bin"), "content": b"binary_data_here", "size": 17}
             })
             
-            mock_api_client.create_bundle.return_value = BundleCreateResponse(
+            mock_api_client.create_bundle.return_value = CreateBundleResponse(
                 id="01HQZX789XYZ123ABC456DEF",
                 created_at="2024-01-15T11:00:00Z",
                 merkle_root=expected_merkle
@@ -250,7 +250,7 @@ class TestIntegrationScenarios:
             assert "01HQZX789XYZ123ABC456DEF" in result.output
             
             # 2. List bundles
-            mock_api_client.list_bundles.return_value = BundleListResponse(
+            mock_api_client.list_bundles.return_value = ListBundlesResponse(
                 bundles=[
                     BundleSummary(
                         id="01HQZX789XYZ123ABC456DEF",
@@ -371,7 +371,7 @@ class TestIntegrationScenarios:
                 mock_api_client = Mock()
                 mock_api_client.preflight.return_value = PreflightResponse(missing=[])
                 mock_api_client.upload_blob.return_value = True
-                mock_api_client.create_bundle.return_value = BundleCreateResponse(
+                mock_api_client.create_bundle.return_value = CreateBundleResponse(
                     id="01HQZX123ABC456DEF789GHI",
                     created_at="2024-01-15T10:30:00Z",
                     merkle_root=expected_merkle
@@ -397,7 +397,7 @@ class TestIntegrationScenarios:
                 mock_api_client = Mock()
                 mock_api_client.preflight.return_value = PreflightResponse(missing=[])
                 mock_api_client.upload_blob.return_value = True
-                mock_api_client.create_bundle.return_value = BundleCreateResponse(
+                mock_api_client.create_bundle.return_value = CreateBundleResponse(
                     id="01HQZX123ABC456DEF789GHI",
                     created_at="2024-01-15T10:30:00Z",
                     merkle_root="wrong_merkle_root"  # Incorrect
@@ -423,7 +423,7 @@ class TestIntegrationScenarios:
                 mock_api_client = Mock()
                 mock_api_client.preflight.return_value = PreflightResponse(missing=[])
                 mock_api_client.upload_blob.return_value = True
-                mock_api_client.create_bundle.return_value = BundleCreateResponse(
+                mock_api_client.create_bundle.return_value = CreateBundleResponse(
                     id="01HQZX123ABC456DEF789GHI",
                     created_at="2024-01-15T10:30:00Z",
                     merkle_root="a" * 64
@@ -451,7 +451,7 @@ class TestIntegrationScenarios:
                 mock_api_client = Mock()
                 mock_api_client.preflight.return_value = PreflightResponse(missing=[])
                 mock_api_client.upload_blob.return_value = True
-                mock_api_client.create_bundle.return_value = BundleCreateResponse(
+                mock_api_client.create_bundle.return_value = CreateBundleResponse(
                     id="01HQZX123ABC456DEF789GHI",
                     created_at="2024-01-15T10:30:00Z",
                     merkle_root="a" * 64
@@ -482,7 +482,7 @@ class TestIntegrationScenarios:
                 mock_api_client = Mock()
                 mock_api_client.preflight.return_value = PreflightResponse(missing=[])
                 mock_api_client.upload_blob.return_value = True
-                mock_api_client.create_bundle.return_value = BundleCreateResponse(
+                mock_api_client.create_bundle.return_value = CreateBundleResponse(
                     id="01HQZX123ABC456DEF789GHI",
                     created_at="2024-01-15T10:30:00Z",
                     merkle_root="a" * 64
@@ -522,7 +522,7 @@ class TestIntegrationScenarios:
                 mock_create_api = Mock()
                 mock_create_api.preflight.return_value = PreflightResponse(missing=[])
                 mock_create_api.upload_blob.return_value = True
-                mock_create_api.create_bundle.return_value = BundleCreateResponse(
+                mock_create_api.create_bundle.return_value = CreateBundleResponse(
                     id="01HQZX123ABC456DEF789GHI",
                     created_at="2024-01-15T10:30:00Z",
                     merkle_root="a" * 64
@@ -578,7 +578,7 @@ class TestIntegrationScenarios:
                 mock_create_api = Mock()
                 mock_create_api.preflight.return_value = PreflightResponse(missing=[])
                 mock_create_api.upload_blob.return_value = True
-                mock_create_api.create_bundle.return_value = BundleCreateResponse(
+                mock_create_api.create_bundle.return_value = CreateBundleResponse(
                     id="01HQZX123ABC456DEF789GHI",
                     created_at="2024-01-15T10:30:00Z",
                     merkle_root=expected_merkle
@@ -683,7 +683,7 @@ class TestIntegrationScenarios:
                 mock_create_api = Mock()
                 mock_create_api.preflight.return_value = PreflightResponse(missing=[])
                 mock_create_api.upload_blob.return_value = True
-                mock_create_api.create_bundle.return_value = BundleCreateResponse(
+                mock_create_api.create_bundle.return_value = CreateBundleResponse(
                     id="01HQZX789XYZ123ABC456DEF",
                     created_at="2024-01-15T11:00:00Z",
                     merkle_root=expected_merkle

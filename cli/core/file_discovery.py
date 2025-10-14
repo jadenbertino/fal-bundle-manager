@@ -40,13 +40,13 @@ def discover_files(input_paths: list[str], base_dir: str | None = None) -> list[
     # Determine base directory if not provided
     if base_dir is None:
         if len(abs_paths) == 1 and abs_paths[0].is_file():
-            # Single file: use parent directory as base
+            # Single file -> use parent directory as base
             base_dir_path = abs_paths[0].parent
         elif len(abs_paths) == 1 and abs_paths[0].is_dir():
-            # Single directory: use parent directory as base to preserve dir name in paths
+            # Single directory -> use parent directory as base to preserve dir name in paths
             base_dir_path = abs_paths[0].parent
         else:
-            # Multiple paths or directories: use common parent
+            # Multiple paths or directories -> use common parent
             base_dir_path = _find_common_parent(abs_paths)
     else:
         base_dir_path = Path(base_dir).resolve()

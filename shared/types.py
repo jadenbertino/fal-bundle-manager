@@ -14,12 +14,14 @@ class Blob(BaseModel):
     @field_validator('hash')
     @classmethod
     def validate_hash(cls, v: str) -> str:
-        return validate_sha256_hash(v)
+        validate_sha256_hash(v)
+        return v
 
     @field_validator('bundle_path')
     @classmethod
     def validate_path(cls, v: str) -> str:
-        return validate_relative_path(v)
+        validate_relative_path(v)
+        return v
 
 
 class BundleSummary(BaseModel):
@@ -35,7 +37,8 @@ class BundleSummary(BaseModel):
     @field_validator('merkle_root')
     @classmethod
     def validate_merkle_root(cls, v: str) -> str:
-        return validate_sha256_hash(v)
+        validate_sha256_hash(v)
+        return v
 
 
 class BundleManifest(BundleSummary):

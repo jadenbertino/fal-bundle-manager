@@ -1,15 +1,13 @@
 import requests
 from pathlib import Path
 from api.tests.helpers import BASE_URL, create_blob, create_bundle
-from shared.config import get_data_dir
-
+from shared.config import SUMMARIES_DIR
 
 def test_list_bundles_empty():
     """Test listing bundles when none exist."""
     # Clean up bundles summaries directory
-    summaries_dir = get_data_dir() / "bundles" / "summaries"
-    if summaries_dir.exists():
-        for bundle_file in summaries_dir.glob("*.json"):
+    if SUMMARIES_DIR.exists():
+        for bundle_file in SUMMARIES_DIR.glob("*.json"):
             bundle_file.unlink()
 
     response = requests.get(f"{BASE_URL}/bundles")
@@ -109,7 +107,7 @@ def test_list_bundles_sorted_by_created_at():
 
 
 def test_list_bundles_response_schema():
-    """Test that response matches BundleListResponse schema."""
+    """Test that response matches ListBundlesResponse schema."""
     # Create a bundle
     create_bundle([(b"schema test", "test.txt")])
 

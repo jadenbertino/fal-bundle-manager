@@ -19,7 +19,7 @@ API server implementation
 │   ├── blob_store.py      # Blob storage implementation
 │   └── bundle_store.py    # Bundle manifest storage
 ├── scripts/               # Development scripts
-│   ├── setup.sh           # Setup virtual environment and dependencies
+│   ├── dependencies.sh    # Setup virtual environment and dependencies
 │   ├── start.sh           # Start development server
 │   └── test.sh            # Run test suite
 ├── tests/                 # API tests
@@ -47,6 +47,12 @@ CLI implementation
 │   ├── hashing.py         # SHA-256 hashing with streaming
 │   ├── uploader.py        # Orchestrate preflight + upload missing blobs
 │   └── bundler.py         # Full create bundle workflow orchestration
+├── scripts/               # CLI scripts
+│   ├── dependencies.sh    # Setup virtual environment and dependencies
+│   ├── install.sh         # Install CLI wrapper to ~/.local/bin
+│   ├── uninstall.sh       # Uninstall CLI wrapper
+│   ├── run.sh             # Run CLI directly
+│   └── test.sh            # Run CLI tests
 ├── client.py              # API client (HTTP requests to server)
 ├── utils.py               # Formatting, progress bars, display utilities
 ├── config.py              # CLI configuration (server URL, timeout, etc.)

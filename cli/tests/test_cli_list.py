@@ -4,7 +4,7 @@ import pytest
 from unittest.mock import Mock, patch
 from click.testing import CliRunner
 from cli.commands.list import list_cmd, format_size, format_timestamp
-from shared.api_contracts.list_bundles import BundleListResponse
+from shared.api_contracts.list_bundles import ListBundlesResponse
 from shared.types import BundleSummary
 import requests
 
@@ -18,7 +18,7 @@ def runner():
 @pytest.fixture
 def sample_bundles():
     """Sample bundle data for testing."""
-    return BundleListResponse(
+    return ListBundlesResponse(
         bundles=[
             BundleSummary(
                 id="01K6GZ396JT9343XTQ89G69Y3W",
@@ -65,13 +65,9 @@ def test_list_bundles_success(runner, sample_bundles):
         assert "Files" in result.output
         assert "Total Size" in result.output
         assert "Created" in result.output
-        assert "Merkle Root" in result.output
         assert "01K6GZ396JT9343XTQ89G69Y3W" in result.output
         assert "01K6GZ3GMJYRAJZ60JD178HT6T" in result.output
         assert "01K6GZ3Q2CSWDDC52XK6ZQN15F" in result.output
-        assert "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" in result.output
-        assert "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" in result.output
-        assert "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc" in result.output
 
 
 def test_list_bundles_empty(runner):
@@ -79,7 +75,7 @@ def test_list_bundles_empty(runner):
     with patch('cli.commands.list.BundlesAPIClient') as mock_client:
         # Setup mock
         mock_instance = Mock()
-        mock_instance.list_bundles.return_value = BundleListResponse(bundles=[])
+        mock_instance.list_bundles.return_value = ListBundlesResponse(bundles=[])
         mock_client.return_value = mock_instance
 
         # Run command

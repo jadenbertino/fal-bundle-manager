@@ -6,7 +6,7 @@ from shared.types import Blob
 from shared.validation import validate_sha256_hash
 
 
-class BundleManifestDraft(BaseModel):
+class CreateBundleRequest(BaseModel):
     """Request schema for creating a bundle."""
 
     files: list[Blob] = Field(..., description="Array of Blob objects")
@@ -16,7 +16,8 @@ class BundleManifestDraft(BaseModel):
     @field_validator('merkle_root')
     @classmethod
     def validate_merkle_root(cls, v: str) -> str:
-        return validate_sha256_hash(v)
+        validate_sha256_hash(v)
+        return v
 
     @field_validator('files')
     @classmethod
@@ -28,7 +29,7 @@ class BundleManifestDraft(BaseModel):
         return files
 
 
-class BundleCreateResponse(BaseModel):
+class CreateBundleResponse(BaseModel):
     """Response schema for bundle creation."""
 
     id: str = Field(..., description="Unique bundle identifier (ULID if auto-generated)")
@@ -38,4 +39,5 @@ class BundleCreateResponse(BaseModel):
     @field_validator('merkle_root')
     @classmethod
     def validate_merkle_root(cls, v: str) -> str:
-        return validate_sha256_hash(v)
+        validate_sha256_hash(v)
+        return v

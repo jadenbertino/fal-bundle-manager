@@ -42,28 +42,6 @@ from cli.client import BundlesAPIClient
 from shared.config import API_URL, API_TIMEOUT
 
 
-def format_size(bytes_count: int) -> str:
-    """Format byte count as human-readable size."""
-    if bytes_count < 1024:
-        return f"{bytes_count:,} B"
-    elif bytes_count < 1024 * 1024:
-        kb = bytes_count / 1024
-        return f"{kb:.1f} KB"
-    elif bytes_count < 1024 * 1024 * 1024:
-        mb = bytes_count / (1024 * 1024)
-        return f"{mb:.1f} MB"
-    else:
-        gb = bytes_count / (1024 * 1024 * 1024)
-        return f"{gb:.1f} GB"
-
-
-def format_timestamp(iso_timestamp: str) -> str:
-    """Format ISO timestamp as readable string."""
-    # Simple format: "2023-12-25T10:30:00Z" -> "2023-12-25 10:30:00"
-    return iso_timestamp.replace('T', ' ').replace('Z', '')
-
-
-
 @click.command()
 @click.option('--api-url', default=API_URL, help='API server URL')
 @click.option('--page', default=1, help='Page number')
@@ -115,4 +93,25 @@ def list_cmd(api_url, page, page_size):
     except Exception as e:
         click.echo(f"Error: Unexpected error: {e}", err=True)
         sys.exit(4)
+
+
+def format_size(bytes_count: int) -> str:
+    """Format byte count as human-readable size."""
+    if bytes_count < 1024:
+        return f"{bytes_count:,} B"
+    elif bytes_count < 1024 * 1024:
+        kb = bytes_count / 1024
+        return f"{kb:.1f} KB"
+    elif bytes_count < 1024 * 1024 * 1024:
+        mb = bytes_count / (1024 * 1024)
+        return f"{mb:.1f} MB"
+    else:
+        gb = bytes_count / (1024 * 1024 * 1024)
+        return f"{gb:.1f} GB"
+
+
+def format_timestamp(iso_timestamp: str) -> str:
+    """Format ISO timestamp as readable string."""
+    # Simple format: "2023-12-25T10:30:00Z" -> "2023-12-25 10:30:00"
+    return iso_timestamp.replace('T', ' ').replace('Z', '')
 

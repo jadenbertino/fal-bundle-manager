@@ -30,10 +30,8 @@ def create(paths, api_url):
                 sys.exit(2)
             validated_paths.append(str(path))
 
-        # Initialize API client
-        api_client = BundlesAPIClient(base_url=api_url, timeout=API_TIMEOUT)
-
         # Create bundle
+        api_client = BundlesAPIClient(base_url=api_url, timeout=API_TIMEOUT)
         response = create_bundle(validated_paths, api_client)
 
         # Output success with all returned fields
