@@ -8,7 +8,9 @@ Allows clients to retrieve a list of all available bundles with basic metadata, 
 
 - **Sources** — HTTP GET request to `/bundles`
 - **Parameters**
-  - None (MVP)
+  - Query params:
+    - `page` - page number (default: `1`)
+    - `page_size` - page size (default: `25`)
 - **Pre-Conditions**
   - None
 
@@ -18,6 +20,7 @@ Allows clients to retrieve a list of all available bundles with basic metadata, 
 - Discovers bundles
   - Enumerates all `*.json` files in `api/.data/bundles/summaries/` directory
   - Uses efficient directory listing (avoids loading file contents initially)
+  - Only read files for the requested `page` and `page_size`
   - Reads from summaries (not manifests) for better performance
 - Reads summaries
   - For each summary file, reads fields: `id`, `created_at`, `hash_algo`, `file_count`, `total_bytes`

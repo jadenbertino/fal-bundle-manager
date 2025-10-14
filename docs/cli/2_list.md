@@ -7,17 +7,17 @@ Allows users to see all available bundles in a readable table format, sorted by 
 ## Input
 
 - **Sources** — CLI command
-- **Parameters**
-  - None (MVP)
-  - Flags: (future: --format, --sort)
+- **Flags**
+  - `--page` - page number (default: `1`)
+  - `--page-size` - page size (default: `25`)
 - **Pre-Conditions**
   - Server is reachable
 
 ## Implementation Details
 
-- Parse CLI command (no arguments required)
+- Parse CLI command + flags
 - Fetches bundle list
-  - Makes GET request to `/bundles` endpoint
+  - Makes GET request to `/bundles?page={page}&page_size={page_size}` endpoint
   - Parses JSON response into `BundleListResponse`
   - Handles HTTP errors appropriately
   - Adds request timeout and retry logic
@@ -35,6 +35,7 @@ Allows users to see all available bundles in a readable table format, sorted by 
   - Column headers: "ID | Files | Total Size | Created"
   - Proper column alignment (left for ID, right for numbers)
   - Handles varying ID lengths and large numbers
+  - Also displays pagination information (page number, page size)
 - Handles empty state
   - Displays helpful message when no bundles exist
   - Example: "No bundles found. Use 'create' command to add bundles."
@@ -63,6 +64,7 @@ Allows users to see all available bundles in a readable table format, sorted by 
 - Error case testing (network failures, empty responses)
 - Table formatting tests with various data sizes
 - End-to-end testing with real API server
+- Pagination testing
 
 ## Implementation Steps
 
