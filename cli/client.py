@@ -85,7 +85,7 @@ class BundlesAPIClient:
         response.raise_for_status()
         return CreateBundleResponse(**response.json())
 
-    def list_bundles(self, page: int = 1, page_size: int = PAGE_SIZE) -> BundleListResponse:
+    def list_bundles(self, page: int = 1, page_size: int = PAGE_SIZE) -> ListBundlesResponse:
         """
         List all available bundles.
 

@@ -36,7 +36,7 @@ async def list_bundles(page: int = 1, page_size: int = PAGE_SIZE):
         print(f"Page: {page}, Page Size: {page_size}")
 
         # Enumerate all .json files in summaries directory
-        all_summaries = list(summaries_dir.glob("*.json"))
+        all_summaries = list(SUMMARIES_DIR.glob("*.json"))
         
         # Process all summaries first to get complete data for sorting
         all_bundles = []
@@ -97,4 +97,5 @@ async def list_bundles(page: int = 1, page_size: int = PAGE_SIZE):
         return ListBundlesResponse(bundles=bundles)
 
     except Exception as e:
+        print(f"Error: {e}")
         raise HTTPException(status_code=500, detail=f"Storage error: {str(e)}")
