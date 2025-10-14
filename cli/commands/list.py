@@ -63,20 +63,22 @@ def format_timestamp(iso_timestamp: str) -> str:
     return iso_timestamp.replace('T', ' ').replace('Z', '')
 
 
+
 @click.command()
 @click.option('--api-url', default=API_URL, help='API server URL')
-def list_cmd(api_url):
+@click.option('--page', default=1, help='Page number')
+@click.option('--page-size', default=25, help='Page size')
+def list_cmd(api_url, page, page_size):
     """
     List all available bundles.
 
     Displays bundles in a table with ID, file count, total size, creation date, and Merkle root (first 10 chars).
     """
+    print(f"Page: {page}, Page Size: {page_size}")
     try:
-        # Initialize API client
-        api_client = BundlesAPIClient(base_url=api_url, timeout=API_TIMEOUT)
-
         # Fetch bundle list
-        response = api_client.list_bundles()
+        api_client = BundlesAPIClient(base_url=api_url, timeout=API_TIMEOUT)
+        response = api_client.list_bundles(page=page, page_size=page_size)
 
         # Handle empty state
         if not response.bundles:
@@ -94,6 +96,7 @@ def list_cmd(api_url):
             click.echo(
                 f"{bundle.id:<28} | {bundle.file_count:>6} | {size_str:>12} | {date_str:<20}"
             )
+        click.echo(f"Page: {page}, Page Size: {page_size}")
 
         sys.exit(0)
 
@@ -112,3 +115,4 @@ def list_cmd(api_url):
     except Exception as e:
         click.echo(f"Error: Unexpected error: {e}", err=True)
         sys.exit(4)
+

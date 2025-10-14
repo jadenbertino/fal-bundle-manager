@@ -3,6 +3,9 @@
 import os
 from pathlib import Path
 
+# Shared (API AND CLI)
+PAGE_SIZE = 25
+
 
 # ============================================================================
 # API Server Configuration

@@ -6,7 +6,7 @@ from shared.api_contracts.preflight import PreflightRequest, PreflightResponse
 from shared.api_contracts.create_bundle import BundleManifestDraft, BundleCreateResponse
 from shared.api_contracts.list_bundles import BundleListResponse
 from shared.api_contracts.download_bundle import DownloadBundleParams
-
+from shared.config import PAGE_SIZE
 
 class BundlesAPIClient:
     """Client for interacting with the fal-bundles API."""
@@ -84,14 +84,14 @@ class BundlesAPIClient:
         response.raise_for_status()
         return BundleCreateResponse(**response.json())
 
-    def list_bundles(self) -> BundleListResponse:
+    def list_bundles(self, page: int = 1, page_size: int = PAGE_SIZE) -> BundleListResponse:
         """
         List all available bundles.
 
         Returns:
             BundleListResponse with list of bundle summaries
         """
-        url = f"{self.base_url}/bundles"
+        url = f"{self.base_url}/bundles?page={page}&page_size={page_size}"
         response = self.session.get(
             url,
             timeout=self.timeout
