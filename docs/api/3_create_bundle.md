@@ -13,7 +13,7 @@ Allows clients to create a bundle from already-uploaded blobs, generating a mani
     type BundleManifestDraft = {
       files: Blob[],       // Array of Blob objects (see docs/types.md)
       hash_algo: "sha256", // Hash algorithm (must be "sha256")
-      merkle_root: string  // SHA-256 Merkle root over bundle files
+      merkle_root: string  // SHA-256 binary Merkle root over bundle files
     }
     ```
 - **Pre-Conditions**
@@ -64,7 +64,7 @@ Allows clients to create a bundle from already-uploaded blobs, generating a mani
   type BundleCreateResponse = {
     id: string,           // Unique bundle identifier (ULID if auto-generated)
     created_at: string,   // ISO 8601 timestamp (e.g., `2023-12-25T10:30:00Z`)
-    merkle_root: string   // SHA-256 Merkle root over bundle contents
+    merkle_root: string   // SHA-256 binary Merkle root over bundle contents
   }
   ```
 

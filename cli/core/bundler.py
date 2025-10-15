@@ -6,10 +6,10 @@ from pathlib import Path
 from typing import Optional
 from shared.types import Blob
 from shared.api_contracts.preflight import PreflightRequest
-from shared.api_contracts.create_bundle import BundleManifestDraft, BundleCreateResponse
+from shared.api_contracts.create_bundle import CreateBundleRequest, CreateBundleResponse
 from shared.merkle import compute_merkle_root
 from cli.core.file_discovery import discover_files
-from cli.core.hashing import hash_file_sha256
+from shared.hash import hash_file_content
 
 
 def create_bundle(
@@ -17,7 +17,7 @@ def create_bundle(
     api_client,  # BundlesAPIClient - avoiding circular import
     bundle_id: Optional[str] = None,
     base_dir: Optional[str] = None
-) -> BundleCreateResponse:
+) -> CreateBundleResponse:
     """
     Create a bundle from local files.
 
@@ -35,7 +35,7 @@ def create_bundle(
         base_dir: Optional base directory for relative paths
 
     Returns:
-        BundleCreateResponse with bundle id and timestamp
+        CreateBundleResponse with bundle id and timestamp
 
     Raises:
         FileNotFoundError: If input paths don't exist
@@ -45,10 +45,10 @@ def create_bundle(
     # Step 1: Discover files
     discovered_files = discover_files(input_paths, base_dir)
 
-    # Step 2: Hash all files and create Blob objects
+    # Step 2: Convert files to list of blobs
     blobs: list[Blob] = []
     for file in discovered_files:
-        file_hash = hash_file_sha256(file.absolute_path)
+        file_hash = hash_file_content(file.absolute_path)
         blob = Blob(
             bundle_path=file.relative_path,
             size_bytes=file.size_bytes,
@@ -57,12 +57,12 @@ def create_bundle(
         )
         blobs.append(blob)
 
-    # Step 3: Preflight check
+    # Step 3: Identify blobs that haven't been uploaded yet
     preflight_request = PreflightRequest(files=blobs)
     preflight_response = api_client.preflight(preflight_request)
     missing_hashes = set(preflight_response.missing)
 
-    # Step 4: Upload missing blobs concurrently
+    # Step 4: Upload missing blobs
     if missing_hashes:
         is_mock_api_client = not (hasattr(api_client, 'base_url') and isinstance(getattr(api_client, 'base_url', None), str))
         if is_mock_api_client:
@@ -75,25 +75,20 @@ def create_bundle(
         else:
             # Use async concurrent uploads for real API client
             asyncio.run(_upload_blobs_async(api_client, blobs, discovered_files, missing_hashes))
-
-    # Step 5: Compute merkle root
-    computed_merkle_root = compute_merkle_root(blobs)
     
-    # Step 6: Create bundle
-    manifest = BundleManifestDraft(
+    # Step 5: Create local bundle manifest
+    computed_merkle_root = compute_merkle_root(blobs)
+    manifest = CreateBundleRequest(
         id=bundle_id,
         files=blobs,
         hash_algo="sha256",
         merkle_root=computed_merkle_root
     )
     
-    # Step 7: Send request and validate response
+    # Step 6: Upload local bundle manifest to server
     response = api_client.create_bundle(manifest)
-    
-    # Validate that server-returned merkle root matches our computed one
     if response.merkle_root != computed_merkle_root:
         raise ValueError(f"Merkle root mismatch: expected {computed_merkle_root}, got {response.merkle_root}")
-
     return response
 
 

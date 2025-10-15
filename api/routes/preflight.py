@@ -25,12 +25,13 @@ async def preflight(request: PreflightRequest) -> PreflightResponse:
         HTTPException: 400 if validation fails, 500 if storage check fails
     """
     try:
-        # Check which blobs are missing
+        # Construct list of blobs that are not yet uploaded
         missing_hashes = []
         for blob in request.files:
             if not blob_exists(blob.hash):
                 missing_hashes.append(blob.hash)
-
+        
+        # Return list of missing blobs
         return PreflightResponse(missing=missing_hashes)
 
     except Exception as e:

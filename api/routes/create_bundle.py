@@ -3,19 +3,18 @@
 import json
 from datetime import datetime
 from pathlib import Path
-from fastapi import APIRouter, HTTPException
-from fastapi.responses import JSONResponse
+from fastapi import APIRouter, HTTPException, Response
 from ulid import ULID
-from shared.api_contracts.create_bundle import BundleManifestDraft, BundleCreateResponse
+from shared.api_contracts.create_bundle import CreateBundleRequest, CreateBundleResponse
 from api.storage import blob_exists
-from shared.config import get_bundle_manifests_dir, get_bundle_summaries_dir
+from shared.config import MANIFESTS_DIR, SUMMARIES_DIR
 from shared.merkle import compute_merkle_root
 
 router = APIRouter()
 
 
-@router.post("/bundles")
-async def create_bundle(request: BundleManifestDraft):
+@router.post("/bundles", response_model=CreateBundleResponse, status_code=201)
+async def create_bundle(request: CreateBundleRequest):
     """
     Create a bundle from already-uploaded blobs.
 
@@ -23,10 +22,10 @@ async def create_bundle(request: BundleManifestDraft):
     All referenced blobs must already exist in storage.
 
     Args:
-        request: BundleManifestDraft containing files array and merkle_root
+        request: CreateBundleRequest containing files array and merkle_root
 
     Returns:
-        BundleCreateResponse with bundle ID and creation timestamp
+        CreateBundleResponse with bundle ID and creation timestamp
 
     Raises:
         HTTPException:
@@ -46,10 +45,8 @@ async def create_bundle(request: BundleManifestDraft):
                 detail=f"Missing blobs: {', '.join(missing_hashes)}"
             )
 
-        # Generate bundle ID
+        # Generate bundle metadata
         bundle_id = str(ULID())
-
-        # Calculate statistics
         file_count = len(request.files)
         total_bytes = sum(file.size_bytes for file in request.files)
         computed_merkle_root = compute_merkle_root(request.files)
@@ -60,22 +57,8 @@ async def create_bundle(request: BundleManifestDraft):
                 status_code=409,
                 detail=f"Merkle root mismatch: expected {computed_merkle_root}, got {request.merkle_root}"
             )
-        
         merkle_root = computed_merkle_root
-
-        # Create timestamp
         created_at = datetime.utcnow().isoformat() + "Z"
-
-        # Build complete manifest (includes files)
-        manifest = {
-            "id": bundle_id,
-            "created_at": created_at,
-            "hash_algo": request.hash_algo,
-            "files": [file.model_dump() for file in request.files],
-            "file_count": file_count,
-            "total_bytes": total_bytes,
-            "merkle_root": merkle_root
-        }
 
         # Build summary (does NOT include files)
         summary = {
@@ -84,22 +67,25 @@ async def create_bundle(request: BundleManifestDraft):
             "hash_algo": request.hash_algo,
             "file_count": file_count,
             "total_bytes": total_bytes,
-            "merkle_root": merkle_root
+            "merkle_root": merkle_root,
+        }
+
+        # Build complete manifest (includes files)
+        manifest = {
+            **summary,
+            "files": [file.model_dump() for file in request.files],
         }
 
         # Write manifest to storage
-        manifests_dir = get_bundle_manifests_dir()
-        manifests_dir.mkdir(parents=True, exist_ok=True)
-        manifest_path = manifests_dir / f"{bundle_id}.json"
+        MANIFESTS_DIR.mkdir(parents=True, exist_ok=True)
+        manifest_path = MANIFESTS_DIR / f"{bundle_id}.json"
+        manifest_temp_path = manifest_path.with_suffix(".tmp")
 
         # Write summary to storage
-        summaries_dir = get_bundle_summaries_dir()
-        summaries_dir.mkdir(parents=True, exist_ok=True)
-        summary_path = summaries_dir / f"{bundle_id}.json"
-
-        # Atomic write: write to temp file, then rename
-        manifest_temp_path = manifest_path.with_suffix(".tmp")
+        SUMMARIES_DIR.mkdir(parents=True, exist_ok=True)
+        summary_path = SUMMARIES_DIR / f"{bundle_id}.json"
         summary_temp_path = summary_path.with_suffix(".tmp")
+        
         try:
             # Write manifest
             manifest_temp_path.write_text(json.dumps(manifest, indent=2))
@@ -119,13 +105,10 @@ async def create_bundle(request: BundleManifestDraft):
                 manifest_path.unlink()
             raise
 
-        return JSONResponse(
-            status_code=201,
-            content={
-                "id": bundle_id,
-                "created_at": created_at,
-                "merkle_root": merkle_root
-            }
+        return CreateBundleResponse(
+            id=bundle_id,
+            created_at=created_at,
+            merkle_root=merkle_root
         )
 
     except HTTPException:

@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field
 from shared.types import BundleSummary
 
 
-class BundleListResponse(BaseModel):
+class ListBundlesResponse(BaseModel):
     """Response schema for listing bundles."""
 
     bundles: list[BundleSummary] = Field(

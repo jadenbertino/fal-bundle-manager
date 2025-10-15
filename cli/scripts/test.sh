@@ -1,29 +1,22 @@
 #!/bin/bash
-# Run CLI tests
+# Test runner for fal-bundles CLI
+# 
+# Usage: ./test.sh [PYTEST_ARGS...]
+# 
+# This script runs the CLI test suite using pytest.
+# Environment and dependencies are managed automatically via dependencies.sh.
+# 
+# Examples:
+#   ./test.sh                    # Run all tests
+#   ./test.sh -k test_create     # Run specific test
+#   ./test.sh --cov              # Run with coverage
 
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CLI_DIR="$(dirname "$SCRIPT_DIR")"
-PROJECT_ROOT="$(dirname "$CLI_DIR")"
+source "$SCRIPT_DIR/dependencies.sh"
 
-cd "$CLI_DIR"
-
-# Check if venv exists, run setup if not
-if [ ! -d ".venv" ]; then
-    echo "==> First run detected, setting up environment..."
-    "$SCRIPT_DIR/setup.sh"
-    if [ $? -ne 0 ]; then
-        echo "Error: Setup failed"
-        exit 1
-    fi
-fi
-
-# Activate virtual environment
-source .venv/bin/activate
-
-# Set PYTHONPATH to project root
-export PYTHONPATH="$PROJECT_ROOT"
-
+# Run pytest with any additional arguments passed to the script
 echo "==> Running CLI tests..."
+cd "$CLI_DIR"
 pytest tests/ -v "$@"

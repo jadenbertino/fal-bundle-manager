@@ -4,8 +4,8 @@ from pydantic import BaseModel, field_validator
 from shared.validation import validate_sha256_hash
 
 
-class BlobUploadParams(BaseModel):
-    """Query parameters for blob upload."""
+class CreateBlobRequest(BaseModel):
+    """Request schema for blob upload."""
 
     hash: str
     size_bytes: int
@@ -13,7 +13,8 @@ class BlobUploadParams(BaseModel):
     @field_validator('hash')
     @classmethod
     def validate_hash(cls, v: str) -> str:
-        return validate_sha256_hash(v)
+        validate_sha256_hash(v)
+        return v
 
     @field_validator('size_bytes')
     @classmethod
@@ -23,7 +24,7 @@ class BlobUploadParams(BaseModel):
         return v
 
 
-class BlobUploadResponse(BaseModel):
+class CreateBlobResponse(BaseModel):
     """Response schema for blob upload."""
 
     status: str  # "created" or "exists"

@@ -1,7 +1,7 @@
 import requests
 from pathlib import Path
 from api.tests.helpers import BASE_URL
-from shared.config import get_data_dir
+from shared.config import DATA_DIR
 
 
 def test_preflight_empty_files():
@@ -179,8 +179,7 @@ def test_preflight_some_existing():
     """Test preflight when some blobs exist."""
     # Create one blob that exists in the server's data directory
     existing_hash = "c" * 64
-    data_dir = get_data_dir()
-    blob_path = data_dir / "blobs" / "cc" / "cc" / existing_hash
+    blob_path = DATA_DIR / "blobs" / "cc" / "cc" / existing_hash
     blob_path.parent.mkdir(parents=True, exist_ok=True)
     blob_path.write_text("test content")
 

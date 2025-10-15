@@ -8,10 +8,12 @@ from unittest.mock import Mock, patch, MagicMock
 import requests
 from cli.__main__ import cli
 from shared.api_contracts.preflight import PreflightResponse
-from shared.api_contracts.create_bundle import BundleCreateResponse
+from shared.api_contracts.create_bundle import CreateBundleResponse
 from cli.tests.fixtures import get_fixture_path
 from shared.merkle import compute_merkle_root
 from shared.types import Blob
+from cli.core.file_discovery import discover_files
+from shared.hash import hash_file_content
 import hashlib
 
 
@@ -40,16 +42,15 @@ def runner():
     return CliRunner()
 
 
-def compute_real_merkle_root(file_paths):
-    """Compute the real merkle root for given file paths."""
+def compute_real_merkle_root(input_paths):
+    """Compute the real merkle root for given input paths using actual file discovery."""
+    discovered = discover_files([str(p) for p in input_paths])
     blobs = []
-    for file_path in file_paths:
-        with open(file_path, 'rb') as f:
-            content = f.read()
-        file_hash = hashlib.sha256(content).hexdigest()
+    for file in discovered:
+        file_hash = hash_file_content(file.absolute_path)
         blob = Blob(
-            bundle_path=file_path.name,
-            size_bytes=len(content),
+            bundle_path=file.relative_path,
+            size_bytes=file.size_bytes,
             hash=file_hash,
             hash_algo="sha256"
         )
@@ -63,7 +64,7 @@ def mock_api_client():
     mock.preflight.return_value = PreflightResponse(missing=[])
     mock.upload_blob.return_value = True
     # We'll set the merkle root dynamically based on real files
-    mock.create_bundle.return_value = BundleCreateResponse(
+    mock.create_bundle.return_value = CreateBundleResponse(
         id=DEFAULT_BUNDLE_ID,
         created_at=DEFAULT_CREATED_AT,
         merkle_root=DEFAULT_MERKLE,  # Will be overridden
@@ -86,7 +87,7 @@ class TestCreateSuccess:
         
         # Compute real merkle root
         real_merkle = compute_real_merkle_root([fixture_file])
-        mock_api_client.create_bundle.return_value = BundleCreateResponse(
+        mock_api_client.create_bundle.return_value = CreateBundleResponse(
             id=DEFAULT_BUNDLE_ID,
             created_at=DEFAULT_CREATED_AT,
             merkle_root=real_merkle,
@@ -108,16 +109,10 @@ class TestCreateSuccess:
         """Test create with a directory."""
         # Use real fixture directory
         fixture_dir = get_fixture_path("test_dir")
-        
-        # Compute real merkle root for directory contents
-        import os
-        file_paths = []
-        for root, dirs, files in os.walk(fixture_dir):
-            for file in files:
-                file_paths.append(os.path.join(root, file))
-        
-        real_merkle = compute_real_merkle_root([Path(p) for p in file_paths])
-        mock_api_client.create_bundle.return_value = BundleCreateResponse(
+
+        # Compute real merkle root using the same logic as the CLI
+        real_merkle = compute_real_merkle_root([fixture_dir])
+        mock_api_client.create_bundle.return_value = CreateBundleResponse(
             id=DEFAULT_BUNDLE_ID,
             created_at=DEFAULT_CREATED_AT,
             merkle_root=real_merkle,
@@ -139,16 +134,10 @@ class TestCreateSuccess:
         file1 = get_fixture_path("file1")
         file2 = get_fixture_path("file2")
         configs_dir = get_fixture_path("configs")
-        
-        # Compute real merkle root for all files
-        import os
-        all_files = [file1, file2]
-        for root, dirs, files in os.walk(configs_dir):
-            for file in files:
-                all_files.append(os.path.join(root, file))
-        
-        real_merkle = compute_real_merkle_root([Path(p) for p in all_files])
-        mock_api_client.create_bundle.return_value = BundleCreateResponse(
+
+        # Compute real merkle root using the same logic as the CLI
+        real_merkle = compute_real_merkle_root([file1, configs_dir, file2])
+        mock_api_client.create_bundle.return_value = CreateBundleResponse(
             id=DEFAULT_BUNDLE_ID,
             created_at=DEFAULT_CREATED_AT,
             merkle_root=real_merkle,
@@ -171,7 +160,7 @@ class TestCreateSuccess:
         
         # Compute real merkle root
         real_merkle = compute_real_merkle_root([fixture_file])
-        mock_api_client.create_bundle.return_value = BundleCreateResponse(
+        mock_api_client.create_bundle.return_value = CreateBundleResponse(
             id=DEFAULT_BUNDLE_ID,
             created_at=DEFAULT_CREATED_AT,
             merkle_root=real_merkle,
@@ -287,7 +276,7 @@ class TestCreateOutputFormat:
         
         # Compute real merkle root
         real_merkle = compute_real_merkle_root([fixture_file])
-        mock_api_client.create_bundle.return_value = BundleCreateResponse(
+        mock_api_client.create_bundle.return_value = CreateBundleResponse(
             id=DEFAULT_BUNDLE_ID,
             created_at=DEFAULT_CREATED_AT,
             merkle_root=real_merkle,

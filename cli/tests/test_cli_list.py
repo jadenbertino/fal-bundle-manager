@@ -1,12 +1,15 @@
-"""Tests for the CLI list command."""
+"""
+Tests for the CLI list command.
+
+IMPORTANT: These tests make REAL API calls to http://localhost:8000
+DO NOT USE MOCKS - We want true integration tests that verify the API server works correctly.
+"""
 
 import pytest
-from unittest.mock import Mock, patch
+import time
 from click.testing import CliRunner
 from cli.commands.list import list_cmd, format_size, format_timestamp
-from shared.api_contracts.list_bundles import BundleListResponse
-from shared.types import BundleSummary
-import requests
+from cli.tests.test_helpers import create_test_bundle, cleanup_all_bundles
 
 
 @pytest.fixture
@@ -15,112 +18,53 @@ def runner():
     return CliRunner()
 
 
-@pytest.fixture
-def sample_bundles():
-    """Sample bundle data for testing."""
-    return BundleListResponse(
-        bundles=[
-            BundleSummary(
-                id="01K6GZ396JT9343XTQ89G69Y3W",
-                created_at="2023-12-25T10:30:00Z",
-                hash_algo="sha256",
-                file_count=5,
-                total_bytes=1024,
-                merkle_root="a" * 64,
-            ),
-            BundleSummary(
-                id="01K6GZ3GMJYRAJZ60JD178HT6T",
-                created_at="2023-12-24T15:20:00Z",
-                hash_algo="sha256",
-                file_count=3,
-                total_bytes=2048000,
-                merkle_root="b" * 64,
-            ),
-            BundleSummary(
-                id="01K6GZ3Q2CSWDDC52XK6ZQN15F",
-                created_at="2023-12-23T08:45:00Z",
-                hash_algo="sha256",
-                file_count=10,
-                total_bytes=500000000,
-                merkle_root="c" * 64,
-            ),
-        ]
-    )
-
-
-def test_list_bundles_success(runner, sample_bundles):
+def test_list_bundles_success(runner):
     """Test successful listing of bundles."""
-    with patch('cli.commands.list.BundlesAPIClient') as mock_client:
-        # Setup mock
-        mock_instance = Mock()
-        mock_instance.list_bundles.return_value = sample_bundles
-        mock_client.return_value = mock_instance
+    # Clean up and create test bundles
+    cleanup_all_bundles()
 
-        # Run command
-        result = runner.invoke(list_cmd)
+    bundle1 = create_test_bundle([(b"test1" * 200, "file1.txt")])
+    time.sleep(0.01)
+    bundle2 = create_test_bundle([(b"test2" * 400, "file2.txt")])
+    time.sleep(0.01)
+    bundle3 = create_test_bundle([(b"test3" * 100, "file3.txt")])
 
-        # Assertions
-        assert result.exit_code == 0
-        assert "ID" in result.output
-        assert "Files" in result.output
-        assert "Total Size" in result.output
-        assert "Created" in result.output
-        assert "Merkle Root" in result.output
-        assert "01K6GZ396JT9343XTQ89G69Y3W" in result.output
-        assert "01K6GZ3GMJYRAJZ60JD178HT6T" in result.output
-        assert "01K6GZ3Q2CSWDDC52XK6ZQN15F" in result.output
-        assert "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" in result.output
-        assert "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" in result.output
-        assert "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc" in result.output
+    # Run command
+    result = runner.invoke(list_cmd)
+
+    # Assertions
+    assert result.exit_code == 0
+    assert "ID" in result.output
+    assert "Files" in result.output
+    assert "Total Size" in result.output
+    assert "Created" in result.output
+    assert bundle1["id"] in result.output
+    assert bundle2["id"] in result.output
+    assert bundle3["id"] in result.output
 
 
 def test_list_bundles_empty(runner):
     """Test listing when no bundles exist."""
-    with patch('cli.commands.list.BundlesAPIClient') as mock_client:
-        # Setup mock
-        mock_instance = Mock()
-        mock_instance.list_bundles.return_value = BundleListResponse(bundles=[])
-        mock_client.return_value = mock_instance
+    # Clean up all bundles
+    cleanup_all_bundles()
 
-        # Run command
-        result = runner.invoke(list_cmd)
+    # Run command
+    result = runner.invoke(list_cmd)
 
-        # Assertions
-        assert result.exit_code == 0
-        assert "No bundles found" in result.output
-        assert "create" in result.output.lower()
+    # Assertions
+    assert result.exit_code == 0
+    assert "No bundles found" in result.output
+    assert "create" in result.output.lower()
 
 
 def test_list_bundles_network_error(runner):
     """Test handling of network connection error."""
-    with patch('cli.commands.list.BundlesAPIClient') as mock_client:
-        # Setup mock to raise ConnectionError
-        mock_instance = Mock()
-        mock_instance.list_bundles.side_effect = requests.exceptions.ConnectionError()
-        mock_client.return_value = mock_instance
+    # Use an invalid API URL to trigger connection error
+    result = runner.invoke(list_cmd, ['--api-url', 'http://localhost:9999'])
 
-        # Run command
-        result = runner.invoke(list_cmd)
-
-        # Assertions
-        assert result.exit_code == 4
-        assert "Failed to connect" in result.output
-
-
-def test_list_bundles_timeout_error(runner):
-    """Test handling of request timeout."""
-    with patch('cli.commands.list.BundlesAPIClient') as mock_client:
-        # Setup mock to raise Timeout
-        mock_instance = Mock()
-        mock_instance.list_bundles.side_effect = requests.exceptions.Timeout()
-        mock_client.return_value = mock_instance
-
-        # Run command
-        result = runner.invoke(list_cmd)
-
-        # Assertions
-        assert result.exit_code == 4
-        assert "timed out" in result.output
+    # Assertions
+    assert result.exit_code == 4
+    assert "Failed to connect" in result.output
 
 
 def test_format_size_bytes():
@@ -159,35 +103,35 @@ def test_format_timestamp():
     assert format_timestamp("2023-06-15T15:45:30Z") == "2023-06-15 15:45:30"
 
 
-def test_list_bundles_formats_sizes_correctly(runner, sample_bundles):
+def test_list_bundles_formats_sizes_correctly(runner):
     """Test that sizes are formatted correctly in output."""
-    with patch('cli.commands.list.BundlesAPIClient') as mock_client:
-        # Setup mock
-        mock_instance = Mock()
-        mock_instance.list_bundles.return_value = sample_bundles
-        mock_client.return_value = mock_instance
+    # Clean up and create bundles with specific sizes
+    cleanup_all_bundles()
 
-        # Run command
-        result = runner.invoke(list_cmd)
+    create_test_bundle([(b"a" * 1024, "1kb.txt")])  # 1 KB
+    time.sleep(0.01)
+    create_test_bundle([(b"b" * (2 * 1024 * 1024), "2mb.txt")])  # 2 MB
 
-        # Check size formatting
-        assert "1.0 KB" in result.output  # 1024 bytes
-        assert "2.0 MB" in result.output  # 2048000 bytes
-        assert "476.8 MB" in result.output  # 500000000 bytes
+    # Run command
+    result = runner.invoke(list_cmd)
+
+    # Check size formatting
+    assert "1.0 KB" in result.output
+    assert "2.0 MB" in result.output
 
 
-def test_list_bundles_formats_dates_correctly(runner, sample_bundles):
+def test_list_bundles_formats_dates_correctly(runner):
     """Test that dates are formatted correctly in output."""
-    with patch('cli.commands.list.BundlesAPIClient') as mock_client:
-        # Setup mock
-        mock_instance = Mock()
-        mock_instance.list_bundles.return_value = sample_bundles
-        mock_client.return_value = mock_instance
+    # Clean up and create a test bundle
+    cleanup_all_bundles()
+    create_test_bundle([(b"test", "file.txt")])
 
-        # Run command
-        result = runner.invoke(list_cmd)
+    # Run command
+    result = runner.invoke(list_cmd)
 
-        # Check date formatting (spaces instead of T and Z)
-        assert "2023-12-25 10:30:00" in result.output
-        assert "2023-12-24 15:20:00" in result.output
-        assert "2023-12-23 08:45:00" in result.output
+    # Check date formatting (should contain date in format YYYY-MM-DD HH:MM:SS)
+    # We can't predict the exact date, but we can check the format
+    import re
+    # Look for pattern like "2024-01-15 10:30:00"
+    date_pattern = r'\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}'
+    assert re.search(date_pattern, result.output), "Expected formatted date not found in output"

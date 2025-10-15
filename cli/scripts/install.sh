@@ -10,8 +10,9 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CLI_DIR="$(dirname "$SCRIPT_DIR")"
-PROJECT_ROOT="$CLI_DIR"
+
+# Source dependencies to get environment variables
+source "$SCRIPT_DIR/dependencies.sh"
 
 # Default installation directory and wrapper name
 INSTALL_DIR="${HOME}/.local/bin"
@@ -40,9 +41,11 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
+echo ""
 echo "==> Installing $WRAPPER_NAME CLI wrapper..."
 echo "   Project root: $PROJECT_ROOT"
 echo "   Install directory: $INSTALL_DIR"
+echo ""
 
 # Create install directory if it doesn't exist
 mkdir -p "$INSTALL_DIR"
@@ -99,4 +102,5 @@ fi
 
 echo ""
 echo "To uninstall, run:"
-echo "  rm $INSTALL_DIR/$WRAPPER_NAME"
+echo "  ./cli/scripts/uninstall.sh"
+echo ""
