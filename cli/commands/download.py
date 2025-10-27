@@ -14,19 +14,87 @@ from cli.client import BundlesAPIClient
 from shared.api_contracts.download_bundle import DownloadBundleParams
 from shared.config import API_TIMEOUT, API_URL
 
+@click.command()
+@click.argument("bundle_id", required=True)
+@click.option("--format", default="zip", help="Archive format (default: zip)")
+@click.option("--api-url", default=API_URL, help="API server URL")
+def download(bundle_id, format, api_url):
+    """
+    Download a bundle as an archive file.
 
-def get_file_extension(format: str) -> str:
-    """Get file extension for archive format."""
-    format_map = {
-        "zip": "zip",
-    }
-    return format_map.get(format, format)
+    BUNDLE_ID: The ID of the bundle to download.
+    """
+    try:
+        # Validate format before making any requests
+        validate_format(format)
 
+        # Generate output filename
+        filename = f"bundle_{bundle_id}.zip"
+        output_path = Path.cwd() / filename
+        final_path = handle_file_conflict(output_path)
+        if final_path != output_path:
+            click.echo(
+                f"File {output_path.name} exists, saving as {final_path.name}", err=True
+            )
 
-def generate_filename(bundle_id: str, format: str) -> str:
-    """Generate output filename for downloaded bundle."""
-    ext = get_file_extension(format)
-    return f"bundle_{bundle_id}.{ext}"
+        # Create temporary file for atomic write
+        temp_fd, temp_path = tempfile.mkstemp(
+            dir=final_path.parent, prefix=f".{final_path.name}.", suffix=".tmp"
+        )
+        os.close(temp_fd)  # Close the file descriptor, we'll open it properly later
+        temp_path = Path(temp_path)
+
+        try:
+            # Stream download to temp file
+            api_client = BundlesAPIClient(base_url=api_url, timeout=API_TIMEOUT)
+            chunks = api_client.download_bundle(bundle_id, format)
+            download_with_progress(chunks, temp_path, show_progress=True)
+
+            # Atomic rename to final location
+            temp_path.rename(final_path)
+
+            # Output success message
+            click.echo(f"Downloaded {final_path.name}")
+            sys.exit(0)
+
+        except Exception:
+            # Clean up temporary file on any error
+            if temp_path.exists():
+                temp_path.unlink()
+            raise
+
+    except ValueError as e:
+        # Format validation error
+        click.echo(f"Error: {e}", err=True)
+        sys.exit(1)
+
+    except requests.exceptions.HTTPError as e:
+        if e.response.status_code == 404:
+            click.echo(f"Error: Bundle {bundle_id} not found", err=True)
+            sys.exit(2)
+        else:
+            click.echo(f"Error: HTTP error: {e}", err=True)
+            sys.exit(4)
+
+    except requests.exceptions.ConnectionError:
+        click.echo(f"Error: Failed to connect to API server at {api_url}", err=True)
+        sys.exit(4)
+
+    except requests.exceptions.Timeout:
+        click.echo("Error: Request timed out", err=True)
+        sys.exit(4)
+
+    except requests.exceptions.RequestException as e:
+        click.echo(f"Error: Network error: {e}", err=True)
+        sys.exit(4)
+
+    except OSError as e:
+        click.echo(f"Error: Failed to write file: {e}", err=True)
+        sys.exit(4)
+
+    except Exception as e:
+        click.echo(f"Error: Unexpected error: {e}", err=True)
+        sys.exit(4)
 
 
 def handle_file_conflict(filepath: Path) -> Path:
@@ -114,91 +182,3 @@ def validate_format(format: str) -> None:
     except ValidationError as e:
         raise ValueError(f"Unsupported format: {format}") from e
 
-
-@click.command()
-@click.argument("bundle_id", required=True)
-@click.option("--format", default="zip", help="Archive format (default: zip)")
-@click.option("--api-url", default=API_URL, help="API server URL")
-def download(bundle_id, format, api_url):
-    """
-    Download a bundle as an archive file.
-
-    BUNDLE_ID: The ID of the bundle to download.
-    """
-    try:
-        # Validate format before making any requests
-        validate_format(format)
-
-        # Initialize API client
-        api_client = BundlesAPIClient(base_url=api_url, timeout=API_TIMEOUT)
-
-        # Generate output filename
-        filename = generate_filename(bundle_id, format)
-        output_path = Path.cwd() / filename
-
-        # Handle file conflicts
-        final_path = handle_file_conflict(output_path)
-        if final_path != output_path:
-            click.echo(
-                f"File {output_path.name} exists, saving as {final_path.name}", err=True
-            )
-
-        # Create temporary file for atomic write
-        temp_fd, temp_path = tempfile.mkstemp(
-            dir=final_path.parent, prefix=f".{final_path.name}.", suffix=".tmp"
-        )
-        os.close(temp_fd)  # Close the file descriptor, we'll open it properly later
-        temp_path = Path(temp_path)
-
-        try:
-            # Download bundle with streaming
-            chunks = api_client.download_bundle(bundle_id, format)
-
-            # Write to temporary file with progress
-            download_with_progress(chunks, temp_path, show_progress=True)
-
-            # Atomic rename to final location
-            temp_path.rename(final_path)
-
-            # Output success message
-            click.echo(f"Downloaded {final_path.name}")
-            sys.exit(0)
-
-        except Exception:
-            # Clean up temporary file on any error
-            if temp_path.exists():
-                temp_path.unlink()
-            raise
-
-    except ValueError as e:
-        # Format validation error
-        click.echo(f"Error: {e}", err=True)
-        sys.exit(1)
-
-    except requests.exceptions.HTTPError as e:
-        if e.response.status_code == 404:
-            click.echo(f"Error: Bundle {bundle_id} not found", err=True)
-            sys.exit(2)
-        else:
-            click.echo(f"Error: HTTP error: {e}", err=True)
-            sys.exit(4)
-
-    except requests.exceptions.ConnectionError:
-        click.echo(f"Error: Failed to connect to API server at {api_url}", err=True)
-        sys.exit(4)
-
-    except requests.exceptions.Timeout:
-        click.echo("Error: Request timed out", err=True)
-        sys.exit(4)
-
-    except requests.exceptions.RequestException as e:
-        click.echo(f"Error: Network error: {e}", err=True)
-        sys.exit(4)
-
-    except OSError as e:
-        click.echo(f"Error: Failed to write file: {e}", err=True)
-        sys.exit(4)
-
-    except Exception as e:
-        click.echo(f"Error: Unexpected error: {e}", err=True)
-        sys.exit(4)

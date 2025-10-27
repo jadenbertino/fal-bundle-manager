@@ -15,7 +15,6 @@ from shared.types import Blob
 def create_bundle(
     input_paths: list[str],
     api_client,  # BundlesAPIClient - avoiding circular import
-    bundle_id: str | None = None,
     base_dir: str | None = None,
 ) -> BundleCreateResponse:
     """
@@ -57,34 +56,17 @@ def create_bundle(
         )
         blobs.append(blob)
 
-    # Step 3: Preflight check
+    # Step 3: Get list of blobs that haven't been uploaded
     preflight_request = PreflightRequest(files=blobs)
     preflight_response = api_client.preflight(preflight_request)
     missing_hashes = set(preflight_response.missing)
 
     # Step 4: Upload missing blobs concurrently
     if missing_hashes:
-        is_mock_api_client = not (
-            hasattr(api_client, "base_url")
-            and isinstance(getattr(api_client, "base_url", None), str)
+        asyncio.run(
+            _upload_blobs_async(api_client, blobs, discovered_files, missing_hashes)
         )
-        if is_mock_api_client:
-            # Fall back to synchronous uploads for mocked clients in tests
-            for blob in blobs:
-                if blob.hash in missing_hashes:
-                    file = next(
-                        f
-                        for f in discovered_files
-                        if f.relative_path == blob.bundle_path
-                    )
-                    with open(file.absolute_path, "rb") as f:
-                        api_client.upload_blob(blob.hash, blob.size_bytes, f)
-        else:
-            # Use async concurrent uploads for real API client
-            asyncio.run(
-                _upload_blobs_async(api_client, blobs, discovered_files, missing_hashes)
-            )
-
+    
     # Step 5: Compute merkle root
     computed_merkle_root = compute_merkle_root(blobs)
 
@@ -103,6 +85,40 @@ def create_bundle(
         )
 
     return response
+
+
+async def _upload_blobs_async(api_client, blobs, discovered_files, missing_hashes):
+    """
+    Upload multiple blobs concurrently using asyncio and aiohttp.
+
+    Args:
+        api_client: BundlesAPIClient instance
+        blobs: List of Blob objects
+        discovered_files: List of discovered files
+        missing_hashes: Set of blob hashes that need to be uploaded
+    """
+    # Create a single shared session for all uploads
+    async with aiohttp.ClientSession() as session:
+        # Create upload tasks for all missing blobs
+        tasks = []
+        for blob in blobs:
+            if blob.hash in missing_hashes:
+                # Find the corresponding file
+                file = next(
+                    f for f in discovered_files if f.relative_path == blob.bundle_path
+                )
+                task = _upload_blob_async(
+                    session,
+                    api_client.base_url,
+                    blob.hash,
+                    blob.size_bytes,
+                    file.absolute_path,
+                    api_client.timeout,
+                )
+                tasks.append(task)
+
+        # Execute all uploads concurrently
+        await asyncio.gather(*tasks)
 
 
 async def _upload_blob_async(
@@ -142,36 +158,3 @@ async def _upload_blob_async(
             response.raise_for_status()
             return response.status == 201
 
-
-async def _upload_blobs_async(api_client, blobs, discovered_files, missing_hashes):
-    """
-    Upload multiple blobs concurrently using asyncio and aiohttp.
-
-    Args:
-        api_client: BundlesAPIClient instance
-        blobs: List of Blob objects
-        discovered_files: List of discovered files
-        missing_hashes: Set of blob hashes that need to be uploaded
-    """
-    # Create a single shared session for all uploads
-    async with aiohttp.ClientSession() as session:
-        # Create upload tasks for all missing blobs
-        tasks = []
-        for blob in blobs:
-            if blob.hash in missing_hashes:
-                # Find the corresponding file
-                file = next(
-                    f for f in discovered_files if f.relative_path == blob.bundle_path
-                )
-                task = _upload_blob_async(
-                    session,
-                    api_client.base_url,
-                    blob.hash,
-                    blob.size_bytes,
-                    file.absolute_path,
-                    api_client.timeout,
-                )
-                tasks.append(task)
-
-        # Execute all uploads concurrently
-        await asyncio.gather(*tasks)
