@@ -1,11 +1,14 @@
 """API client for communicating with the fal-bundles server."""
 
+from collections.abc import Iterator
+from typing import BinaryIO, Literal
+
 import requests
-from typing import BinaryIO, Iterator
-from shared.api_contracts.preflight import PreflightRequest, PreflightResponse
-from shared.api_contracts.create_bundle import BundleManifestDraft, BundleCreateResponse
-from shared.api_contracts.list_bundles import BundleListResponse
+
+from shared.api_contracts.create_bundle import BundleCreateResponse, BundleManifestDraft
 from shared.api_contracts.download_bundle import DownloadBundleParams
+from shared.api_contracts.list_bundles import BundleListResponse
+from shared.api_contracts.preflight import PreflightRequest, PreflightResponse
 
 
 class BundlesAPIClient:
@@ -19,7 +22,7 @@ class BundlesAPIClient:
             base_url: Base URL of the API server (e.g., "http://localhost:8000")
             timeout: Request timeout in seconds (default: 300)
         """
-        self.base_url = base_url.rstrip('/')
+        self.base_url = base_url.rstrip("/")
         self.timeout = timeout
         self.session = requests.Session()
 
@@ -35,9 +38,7 @@ class BundlesAPIClient:
         """
         url = f"{self.base_url}/bundles/preflight"
         response = self.session.post(
-            url,
-            json=request.model_dump(),
-            timeout=self.timeout
+            url, json=request.model_dump(), timeout=self.timeout
         )
         response.raise_for_status()
         return PreflightResponse(**response.json())
@@ -57,10 +58,7 @@ class BundlesAPIClient:
         url = f"{self.base_url}/blobs/{hash}"
         params = {"size_bytes": size_bytes}
         response = self.session.put(
-            url,
-            params=params,
-            data=file_obj,
-            timeout=self.timeout
+            url, params=params, data=file_obj, timeout=self.timeout
         )
         response.raise_for_status()
         return response.status_code == 201
@@ -77,9 +75,7 @@ class BundlesAPIClient:
         """
         url = f"{self.base_url}/bundles"
         response = self.session.post(
-            url,
-            json=manifest.model_dump(),
-            timeout=self.timeout
+            url, json=manifest.model_dump(), timeout=self.timeout
         )
         response.raise_for_status()
         return BundleCreateResponse(**response.json())
@@ -92,14 +88,13 @@ class BundlesAPIClient:
             BundleListResponse with list of bundle summaries
         """
         url = f"{self.base_url}/bundles"
-        response = self.session.get(
-            url,
-            timeout=self.timeout
-        )
+        response = self.session.get(url, timeout=self.timeout)
         response.raise_for_status()
         return BundleListResponse(**response.json())
 
-    def download_bundle(self, bundle_id: str, format: str = "zip") -> Iterator[bytes]:
+    def download_bundle(
+        self, bundle_id: str, format: Literal["zip"] = "zip"
+    ) -> Iterator[bytes]:
         """
         Download a bundle as a streaming archive.
 
@@ -118,10 +113,7 @@ class BundlesAPIClient:
         params = DownloadBundleParams(format=format).model_dump()
 
         response = self.session.get(
-            url,
-            params=params,
-            stream=True,
-            timeout=self.timeout
+            url, params=params, stream=True, timeout=self.timeout
         )
         response.raise_for_status()
 

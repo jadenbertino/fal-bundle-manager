@@ -1,0 +1,22 @@
+{
+  "recommendations": [
+    // Core Python support (debugging, env selection, testing)
+    "ms-python.python",
+
+    // Pylance language server (fast IntelliSense + inline type hints)
+    "ms-python.vscode-pylance",
+
+    // Ruff: linting, formatting, and import sorting
+    "charliermarsh.ruff",
+
+    // TOML syntax highlighting and schema validation
+    // "bungcip.better-toml",
+    "tamasfe.even-better-toml",
+
+    // Markdown: preview, auto TOC, formatting helpers
+    "yzhang.markdown-all-in-one",
+
+    // Optional: integrates pre-commit with VS Code UI (shows hook status)
+    "Sourcery.pre-commit-helper"
+  ]
+}

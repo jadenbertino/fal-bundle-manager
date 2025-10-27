@@ -36,10 +36,12 @@ Pseudo-code tests:
 """
 
 import sys
+
 import click
 import requests
+
 from cli.client import BundlesAPIClient
-from shared.config import API_URL, API_TIMEOUT
+from shared.config import API_TIMEOUT, API_URL
 
 
 def format_size(bytes_count: int) -> str:
@@ -60,11 +62,11 @@ def format_size(bytes_count: int) -> str:
 def format_timestamp(iso_timestamp: str) -> str:
     """Format ISO timestamp as readable string."""
     # Simple format: "2023-12-25T10:30:00Z" -> "2023-12-25 10:30:00"
-    return iso_timestamp.replace('T', ' ').replace('Z', '')
+    return iso_timestamp.replace("T", " ").replace("Z", "")
 
 
 @click.command()
-@click.option('--api-url', default=API_URL, help='API server URL')
+@click.option("--api-url", default=API_URL, help="API server URL")
 def list_cmd(api_url):
     """
     List all available bundles.
@@ -102,7 +104,7 @@ def list_cmd(api_url):
         sys.exit(4)
 
     except requests.exceptions.Timeout:
-        click.echo(f"Error: Request timed out", err=True)
+        click.echo("Error: Request timed out", err=True)
         sys.exit(4)
 
     except requests.exceptions.RequestException as e:

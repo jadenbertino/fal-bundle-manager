@@ -1,8 +1,9 @@
 """Preflight API endpoint."""
 
 from fastapi import APIRouter, HTTPException
-from shared.api_contracts.preflight import PreflightRequest, PreflightResponse
+
 from api.storage import blob_exists
+from shared.api_contracts.preflight import PreflightRequest, PreflightResponse
 
 router = APIRouter()
 
@@ -26,12 +27,13 @@ async def preflight(request: PreflightRequest) -> PreflightResponse:
     """
     try:
         # Check which blobs are missing
-        missing_hashes = []
-        for blob in request.files:
-            if not blob_exists(blob.hash):
-                missing_hashes.append(blob.hash)
+        missing_hashes = [
+            blob.hash for blob in request.files if not blob_exists(blob.hash)
+        ]
 
         return PreflightResponse(missing=missing_hashes)
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Storage check failed: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Storage check failed: {str(e)}"
+        ) from e

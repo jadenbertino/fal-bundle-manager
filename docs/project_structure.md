@@ -18,10 +18,6 @@ API server implementation
 │   ├── __init__.py
 │   ├── blob_store.py      # Blob storage implementation
 │   └── bundle_store.py    # Bundle manifest storage
-├── scripts/               # Development scripts
-│   ├── setup.sh           # Setup virtual environment and dependencies
-│   ├── start.sh           # Start development server
-│   └── test.sh            # Run test suite
 ├── tests/                 # API tests
 │   ├── __init__.py
 │   ├── test_status.py     # Status endpoint test

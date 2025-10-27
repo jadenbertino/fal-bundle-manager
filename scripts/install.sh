@@ -1,17 +1,16 @@
 #!/bin/bash
 # Install fal-bundles CLI wrapper
-# 
+#
 # Usage: ./install.sh [--name <wrapper_name>]
-# 
-# This script creates a wrapper script that references run.sh for the fal-bundles CLI.
+#
+# This script creates a wrapper script that references cli.sh for the fal-bundles CLI.
 # The wrapper is installed to ~/.local/bin by default.
-# The wrapper handles environment setup and dependency management via run.sh.
+# The wrapper handles environment setup and dependency management via cli.sh.
 
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CLI_DIR="$(dirname "$SCRIPT_DIR")"
-PROJECT_ROOT="$CLI_DIR"
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 
 # Default installation directory and wrapper name
 INSTALL_DIR="${HOME}/.local/bin"
@@ -47,20 +46,19 @@ echo "   Install directory: $INSTALL_DIR"
 # Create install directory if it doesn't exist
 mkdir -p "$INSTALL_DIR"
 
-# Create the wrapper script that references run.sh
+# Create the wrapper script that references cli.sh
 cat > "$INSTALL_DIR/$WRAPPER_NAME" << EOF
 #!/bin/bash
 # fal-bundles CLI wrapper
 
 # Embedded project root path
 PROJECT_ROOT="$PROJECT_ROOT"
-CLI_DIR="\$PROJECT_ROOT/cli"
 
 # Set the program name for the CLI
 export FAL_BUNDLES_PROG_NAME="$WRAPPER_NAME"
 
-# Run the CLI using the run.sh script
-exec "\$CLI_DIR/scripts/run.sh" "\$@"
+# Run the CLI using the cli.sh script
+exec "\$PROJECT_ROOT/scripts/cli.sh" "\$@"
 EOF
 
 # Make the wrapper executable

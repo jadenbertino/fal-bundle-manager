@@ -1,6 +1,7 @@
 """API contracts for blob upload endpoint."""
 
 from pydantic import BaseModel, field_validator
+
 from shared.validation import validate_sha256_hash
 
 
@@ -10,12 +11,12 @@ class BlobUploadParams(BaseModel):
     hash: str
     size_bytes: int
 
-    @field_validator('hash')
+    @field_validator("hash")
     @classmethod
     def validate_hash(cls, v: str) -> str:
         return validate_sha256_hash(v)
 
-    @field_validator('size_bytes')
+    @field_validator("size_bytes")
     @classmethod
     def validate_size(cls, v: int) -> int:
         if v < 0:

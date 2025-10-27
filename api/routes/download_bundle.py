@@ -1,22 +1,21 @@
 """Download bundle API endpoint."""
 
+import io
 import json
 import zipfile
-import io
-from pathlib import Path
-from typing import Literal
+
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import StreamingResponse
-from shared.config import get_bundle_manifests_dir
+
 from api.storage import get_blob_path
+from shared.config import get_bundle_manifests_dir
 
 router = APIRouter()
 
 
 @router.get("/bundles/{bundle_id}/download")
 async def download_bundle(
-    bundle_id: str,
-    format: str = Query(default="zip", description="Archive format")
+    bundle_id: str, format: str = Query(default="zip", description="Archive format")
 ):
     """
     Download a bundle as a streaming archive file.
@@ -39,7 +38,7 @@ async def download_bundle(
         if format != "zip":
             raise HTTPException(
                 status_code=415,
-                detail=f"Unsupported format '{format}'. Only 'zip' is supported."
+                detail=f"Unsupported format '{format}'. Only 'zip' is supported.",
             )
 
         # Check if bundle manifest exists
@@ -48,8 +47,7 @@ async def download_bundle(
 
         if not manifest_path.exists():
             raise HTTPException(
-                status_code=404,
-                detail=f"Bundle '{bundle_id}' not found"
+                status_code=404, detail=f"Bundle '{bundle_id}' not found"
             )
 
         # Load bundle manifest
@@ -58,9 +56,8 @@ async def download_bundle(
             manifest = json.loads(manifest_text)
         except (json.JSONDecodeError, OSError) as e:
             raise HTTPException(
-                status_code=500,
-                detail=f"Failed to read bundle manifest: {str(e)}"
-            )
+                status_code=500, detail=f"Failed to read bundle manifest: {str(e)}"
+            ) from e
 
         # Verify all blobs exist and collect paths
         files = manifest.get("files", [])
@@ -73,8 +70,7 @@ async def download_bundle(
 
             if not blob_path.exists():
                 raise HTTPException(
-                    status_code=500,
-                    detail=f"Missing blob: {blob_hash}"
+                    status_code=500, detail=f"Missing blob: {blob_hash}"
                 )
 
             blob_mappings.append((blob_path, bundle_path))
@@ -95,7 +91,7 @@ async def download_bundle(
             media_type="application/zip",
             headers={
                 "Content-Disposition": f'attachment; filename="bundle_{bundle_id}.zip"'
-            }
+            },
         )
 
     except HTTPException:
@@ -103,6 +99,5 @@ async def download_bundle(
         raise
     except Exception as e:
         raise HTTPException(
-            status_code=500,
-            detail=f"Failed to create archive: {str(e)}"
-        )
+            status_code=500, detail=f"Failed to create archive: {str(e)}"
+        ) from e

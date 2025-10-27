@@ -21,7 +21,6 @@ __pycache__/
 htmlcov/
 
 # IDE
-.vscode/
 .idea/
 *.swp
 *.swo

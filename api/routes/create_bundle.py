@@ -1,13 +1,14 @@
 """Bundle creation API endpoint."""
 
-import json
 from datetime import datetime
-from pathlib import Path
+import json
+
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from ulid import ULID
-from shared.api_contracts.create_bundle import BundleManifestDraft, BundleCreateResponse
+
 from api.storage import blob_exists
+from shared.api_contracts.create_bundle import BundleManifestDraft
 from shared.config import get_bundle_manifests_dir, get_bundle_summaries_dir
 from shared.merkle import compute_merkle_root
 
@@ -36,14 +37,12 @@ async def create_bundle(request: BundleManifestDraft):
     """
     try:
         # Verify all referenced blobs exist
-        missing_hashes = []
-        for file in request.files:
-            if not blob_exists(file.hash):
-                missing_hashes.append(file.hash)
+        missing_hashes = [
+            file.hash for file in request.files if not blob_exists(file.hash)
+        ]
         if missing_hashes:
             raise HTTPException(
-                status_code=409,
-                detail=f"Missing blobs: {', '.join(missing_hashes)}"
+                status_code=409, detail=f"Missing blobs: {', '.join(missing_hashes)}"
             )
 
         # Generate bundle ID
@@ -53,14 +52,14 @@ async def create_bundle(request: BundleManifestDraft):
         file_count = len(request.files)
         total_bytes = sum(file.size_bytes for file in request.files)
         computed_merkle_root = compute_merkle_root(request.files)
-        
+
         # Validate that client-provided merkle root matches server-computed one
         if request.merkle_root != computed_merkle_root:
             raise HTTPException(
                 status_code=409,
-                detail=f"Merkle root mismatch: expected {computed_merkle_root}, got {request.merkle_root}"
+                detail=f"Merkle root mismatch: expected {computed_merkle_root}, got {request.merkle_root}",
             )
-        
+
         merkle_root = computed_merkle_root
 
         # Create timestamp
@@ -74,7 +73,7 @@ async def create_bundle(request: BundleManifestDraft):
             "files": [file.model_dump() for file in request.files],
             "file_count": file_count,
             "total_bytes": total_bytes,
-            "merkle_root": merkle_root
+            "merkle_root": merkle_root,
         }
 
         # Build summary (does NOT include files)
@@ -84,7 +83,7 @@ async def create_bundle(request: BundleManifestDraft):
             "hash_algo": request.hash_algo,
             "file_count": file_count,
             "total_bytes": total_bytes,
-            "merkle_root": merkle_root
+            "merkle_root": merkle_root,
         }
 
         # Write manifest to storage
@@ -108,7 +107,7 @@ async def create_bundle(request: BundleManifestDraft):
             # Write summary
             summary_temp_path.write_text(json.dumps(summary, indent=2))
             summary_temp_path.rename(summary_path)
-        except Exception as e:
+        except Exception:
             # Clean up temp files on error
             if manifest_temp_path.exists():
                 manifest_temp_path.unlink()
@@ -124,12 +123,12 @@ async def create_bundle(request: BundleManifestDraft):
             content={
                 "id": bundle_id,
                 "created_at": created_at,
-                "merkle_root": merkle_root
-            }
+                "merkle_root": merkle_root,
+            },
         )
 
     except HTTPException:
         # Re-raise HTTP exceptions
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Storage error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Storage error: {str(e)}") from e

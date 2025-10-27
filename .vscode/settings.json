@@ -1,0 +1,7 @@
+{
+  "python.analysis.typeCheckingMode": "basic", // fast inline squiggles via Pylance. can also do "strict" but this is a bit slower, not needed if using mypy in CI
+  "editor.defaultFormatter": "charliermarsh.ruff",
+  "editor.formatOnSave": true,
+  "ruff.organizeImports": true,
+  "python.defaultInterpreterPath": ".venv/bin/python3",
+}

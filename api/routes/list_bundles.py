@@ -1,12 +1,16 @@
 """List bundles API endpoint."""
 
 import json
-from pathlib import Path
+
 from fastapi import APIRouter, HTTPException
+
 from shared.api_contracts.list_bundles import BundleListResponse
-from shared.types import BundleSummary, Blob
-from shared.config import get_bundle_summaries_dir, get_bundle_manifests_dir
+from shared.config import get_bundle_manifests_dir, get_bundle_summaries_dir
+from shared.logs import get_logger
 from shared.merkle import compute_merkle_root
+from shared.types import Blob, BundleSummary
+
+logger = get_logger(__name__)
 
 router = APIRouter()
 
@@ -50,11 +54,14 @@ async def list_bundles():
                         manifest = json.loads(manifest_path.read_text())
                         merkle_root = manifest.get("merkle_root")
                         if not merkle_root:
-                            files = [Blob(**file_dict) for file_dict in manifest.get("files", [])]
+                            files = [
+                                Blob(**file_dict)
+                                for file_dict in manifest.get("files", [])
+                            ]
                             merkle_root = compute_merkle_root(files)
                     except Exception as manifest_error:
-                        print(
-                            f"Warning: Unable to determine merkle root for {summary_path}: {manifest_error}"
+                        logger.warning(
+                            f"Unable to determine merkle root for {summary_path}: {manifest_error}"
                         )
                         continue
 
@@ -70,8 +77,7 @@ async def list_bundles():
 
             except (json.JSONDecodeError, KeyError) as e:
                 # Log and skip corrupted/invalid summaries
-                # In production, use proper logging
-                print(f"Warning: Skipping invalid summary {summary_path}: {e}")
+                logger.warning(f"Skipping invalid summary {summary_path}: {e}")
                 continue
 
         # Sort by created_at descending (newest first)
@@ -80,4 +86,4 @@ async def list_bundles():
         return BundleListResponse(bundles=bundles)
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Storage error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Storage error: {str(e)}") from e

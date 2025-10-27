@@ -1,0 +1,48 @@
+# Ruff config: linting, import sorting, and formatting in one place.
+# https://docs.astral.sh/ruff/
+
+# Target + formatting
+line-length = 88
+target-version = "py310"
+
+[lint]
+select = [
+  "E",   # pycodestyle errors
+  "W",   # pycodestyle warnings
+  "F",   # pyflakes
+  "I",   # isort (import sorting)
+  "UP",  # pyupgrade (modernize syntax)
+  "B",   # flake8-bugbear (bug-prone patterns)
+  "C4",  # flake8-comprehensions (comprehension simplifications)
+  "SIM", # flake8-simplify (simpler code)
+  "PERF",# perflint (micro perf)
+  "T20", # flake8-print (ban print statements)
+]
+ignore = [
+  "E203", # keep Black-style slicing spacing compatibility
+  "E501", # line too long
+]
+exclude = [
+  "build",
+  "dist",
+  ".venv",
+  ".mypy_cache",
+  ".pytest_cache",
+  "*/tests/*"
+]
+
+[lint.isort]
+# Keep your package recognized as first-party for import sorting
+# known-first-party = ["your_pkg"]
+combine-as-imports = true
+force-sort-within-sections = true
+
+[format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+docstring-code-format = true  # tidy fenced code blocks in docstrings
+
+[lint.per-file-ignores]
+# Tests can be a little looser (e.g., allow assert, unused vars in fixtures)
+"tests/**" = ["S101"]  # example if you add security rules later
