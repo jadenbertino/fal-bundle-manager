@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+FOLDERS="api cli shared"
+
 # lint
-uvx ruff check --fix api cli
+uvx ruff check --fix $FOLDERS
 
 # format
-uvx ruff format api cli
+uvx ruff format $FOLDERS
 
 # check types
 echo "checking types"
-uv run mypy --exclude 'tests' api cli
+uv run mypy --exclude 'tests' $FOLDERS

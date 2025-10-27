@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 import hashlib
-from typing import Iterable, Protocol, runtime_checkable
+from typing import Protocol, runtime_checkable
 
 
 @runtime_checkable
@@ -36,7 +37,7 @@ def compute_merkle_root(blobs: Iterable[_BlobLike | dict]) -> str:
     for bundle_path, hash_str in sorted(
         (_normalize_blob(blob) for blob in blobs), key=lambda item: item[0]
     ):
-        leaf_input = f"{bundle_path}:{hash_str}".encode("utf-8")
+        leaf_input = f"{bundle_path}:{hash_str}".encode()
         leaf_digests.append(hashlib.sha256(leaf_input).digest())
 
     if not leaf_digests:

@@ -1,6 +1,7 @@
 """API contracts for list bundles endpoint."""
 
 from pydantic import BaseModel, Field
+
 from shared.types import BundleSummary
 
 

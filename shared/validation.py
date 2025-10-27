@@ -15,9 +15,11 @@ def validate_sha256_hash(hash_str: str) -> str:
         ValueError: If hash is not a valid 64-character lowercase hex string
     """
     if len(hash_str) != 64:
-        raise ValueError(f"SHA-256 hash must be exactly 64 characters, got {len(hash_str)}")
+        raise ValueError(
+            f"SHA-256 hash must be exactly 64 characters, got {len(hash_str)}"
+        )
 
-    if not all(c in '0123456789abcdef' for c in hash_str):
+    if not all(c in "0123456789abcdef" for c in hash_str):
         raise ValueError("Hash must be lowercase hexadecimal (0-9, a-f)")
 
     return hash_str
@@ -36,10 +38,10 @@ def validate_relative_path(path: str) -> str:
     Raises:
         ValueError: If path is not relative or contains directory traversal
     """
-    if path.startswith('/'):
+    if path.startswith("/"):
         raise ValueError("Path must be relative (no leading '/')")
 
-    if '..' in path.split('/'):
+    if ".." in path.split("/"):
         raise ValueError("Path cannot contain '..' (directory traversal)")
 
     if not path:
