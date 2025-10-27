@@ -20,13 +20,15 @@ select = [
 ]
 ignore = [
   "E203", # keep Black-style slicing spacing compatibility
+  "E501", # line too long
 ]
 exclude = [
   "build",
   "dist",
   ".venv",
   ".mypy_cache",
-  ".pytest_cache"
+  ".pytest_cache",
+  "tests"
 ]
 
 [lint.isort]

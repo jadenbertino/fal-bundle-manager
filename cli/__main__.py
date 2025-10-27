@@ -1,9 +1,10 @@
 """CLI entry point."""
 
 import click
+
 from cli.commands.create import create
-from cli.commands.list import list_cmd
 from cli.commands.download import download
+from cli.commands.list import list_cmd
 
 
 @click.group()

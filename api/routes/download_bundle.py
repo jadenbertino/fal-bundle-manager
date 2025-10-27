@@ -1,14 +1,14 @@
 """Download bundle API endpoint."""
 
+import io
 import json
 import zipfile
-import io
-from pathlib import Path
-from typing import Literal
+
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import StreamingResponse
-from shared.config import get_bundle_manifests_dir
+
 from api.storage import get_blob_path
+from shared.config import get_bundle_manifests_dir
 
 router = APIRouter()
 

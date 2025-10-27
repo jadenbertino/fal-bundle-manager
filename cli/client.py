@@ -1,11 +1,14 @@
 """API client for communicating with the fal-bundles server."""
 
+from collections.abc import Iterator
+from typing import BinaryIO
+
 import requests
-from typing import BinaryIO, Iterator
-from shared.api_contracts.preflight import PreflightRequest, PreflightResponse
-from shared.api_contracts.create_bundle import BundleManifestDraft, BundleCreateResponse
-from shared.api_contracts.list_bundles import BundleListResponse
+
+from shared.api_contracts.create_bundle import BundleCreateResponse, BundleManifestDraft
 from shared.api_contracts.download_bundle import DownloadBundleParams
+from shared.api_contracts.list_bundles import BundleListResponse
+from shared.api_contracts.preflight import PreflightRequest, PreflightResponse
 
 
 class BundlesAPIClient:

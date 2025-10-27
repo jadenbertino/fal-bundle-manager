@@ -1,8 +1,9 @@
 """Preflight API endpoint."""
 
 from fastapi import APIRouter, HTTPException
-from shared.api_contracts.preflight import PreflightRequest, PreflightResponse
+
 from api.storage import blob_exists
+from shared.api_contracts.preflight import PreflightRequest, PreflightResponse
 
 router = APIRouter()
 

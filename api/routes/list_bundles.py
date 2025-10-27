@@ -1,12 +1,13 @@
 """List bundles API endpoint."""
 
 import json
-from pathlib import Path
+
 from fastapi import APIRouter, HTTPException
+
 from shared.api_contracts.list_bundles import BundleListResponse
-from shared.types import BundleSummary, Blob
-from shared.config import get_bundle_summaries_dir, get_bundle_manifests_dir
+from shared.config import get_bundle_manifests_dir, get_bundle_summaries_dir
 from shared.merkle import compute_merkle_root
+from shared.types import Blob, BundleSummary
 
 router = APIRouter()
 

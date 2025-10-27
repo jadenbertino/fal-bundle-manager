@@ -1,13 +1,15 @@
 """Create command implementation."""
 
-import sys
 import os
+from pathlib import Path
+import sys
+
 import click
 import requests
-from pathlib import Path
+
 from cli.client import BundlesAPIClient
 from cli.core.bundler import create_bundle
-from shared.config import API_URL, API_TIMEOUT
+from shared.config import API_TIMEOUT, API_URL
 
 
 @click.command()
@@ -51,12 +53,12 @@ def create(paths, api_url):
         click.echo(f"Error: {e}", err=True)
         sys.exit(2)
 
-    except requests.exceptions.ConnectionError as e:
+    except requests.exceptions.ConnectionError:
         click.echo(f"Error: Failed to connect to API server at {api_url}", err=True)
         sys.exit(4)
 
-    except requests.exceptions.Timeout as e:
-        click.echo(f"Error: Request timed out", err=True)
+    except requests.exceptions.Timeout:
+        click.echo("Error: Request timed out", err=True)
         sys.exit(4)
 
     except requests.exceptions.RequestException as e:

@@ -1,16 +1,18 @@
 """Download command implementation."""
 
-import sys
+from collections.abc import Iterator
 import os
-import tempfile
-import click
-import requests
 from pathlib import Path
-from typing import Iterator
+import sys
+import tempfile
+
+import click
 from pydantic import ValidationError
+import requests
+
 from cli.client import BundlesAPIClient
-from shared.config import API_URL, API_TIMEOUT
 from shared.api_contracts.download_bundle import DownloadBundleParams
+from shared.config import API_TIMEOUT, API_URL
 
 
 def get_file_extension(format: str) -> str:
@@ -86,7 +88,7 @@ def download_with_progress(chunks: Iterator[bytes], output_path: Path, show_prog
 
         return total_bytes
 
-    except IOError as e:
+    except OSError:
         # Clean up partial file on error
         if output_path.exists():
             output_path.unlink()
@@ -182,14 +184,14 @@ def download(bundle_id, format, api_url):
         sys.exit(4)
 
     except requests.exceptions.Timeout:
-        click.echo(f"Error: Request timed out", err=True)
+        click.echo("Error: Request timed out", err=True)
         sys.exit(4)
 
     except requests.exceptions.RequestException as e:
         click.echo(f"Error: Network error: {e}", err=True)
         sys.exit(4)
 
-    except IOError as e:
+    except OSError as e:
         click.echo(f"Error: Failed to write file: {e}", err=True)
         sys.exit(4)
 

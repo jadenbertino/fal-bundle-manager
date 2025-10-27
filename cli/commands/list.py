@@ -36,10 +36,12 @@ Pseudo-code tests:
 """
 
 import sys
+
 import click
 import requests
+
 from cli.client import BundlesAPIClient
-from shared.config import API_URL, API_TIMEOUT
+from shared.config import API_TIMEOUT, API_URL
 
 
 def format_size(bytes_count: int) -> str:
@@ -102,7 +104,7 @@ def list_cmd(api_url):
         sys.exit(4)
 
     except requests.exceptions.Timeout:
-        click.echo(f"Error: Request timed out", err=True)
+        click.echo("Error: Request timed out", err=True)
         sys.exit(4)
 
     except requests.exceptions.RequestException as e:

@@ -2,11 +2,11 @@
 set -euo pipefail
 
 # lint
-uvx ruff check --fix src
+uvx ruff check --fix api cli
 
 # format
-uvx ruff format src
+uvx ruff format api cli
 
 # check types
 echo "checking types"
-uv run mypy src
+uv run mypy api cli

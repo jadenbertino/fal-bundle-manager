@@ -1,22 +1,22 @@
 """Bundle creation orchestration."""
 
 import asyncio
+
 import aiohttp
-from pathlib import Path
-from typing import Optional
-from shared.types import Blob
-from shared.api_contracts.preflight import PreflightRequest
-from shared.api_contracts.create_bundle import BundleManifestDraft, BundleCreateResponse
-from shared.merkle import compute_merkle_root
+
 from cli.core.file_discovery import discover_files
 from cli.core.hashing import hash_file_sha256
+from shared.api_contracts.create_bundle import BundleCreateResponse, BundleManifestDraft
+from shared.api_contracts.preflight import PreflightRequest
+from shared.merkle import compute_merkle_root
+from shared.types import Blob
 
 
 def create_bundle(
     input_paths: list[str],
     api_client,  # BundlesAPIClient - avoiding circular import
-    bundle_id: Optional[str] = None,
-    base_dir: Optional[str] = None
+    bundle_id: str | None = None,
+    base_dir: str | None = None
 ) -> BundleCreateResponse:
     """
     Create a bundle from local files.
@@ -78,7 +78,7 @@ def create_bundle(
 
     # Step 5: Compute merkle root
     computed_merkle_root = compute_merkle_root(blobs)
-    
+
     # Step 6: Create bundle
     manifest = BundleManifestDraft(
         id=bundle_id,
@@ -86,10 +86,10 @@ def create_bundle(
         hash_algo="sha256",
         merkle_root=computed_merkle_root
     )
-    
+
     # Step 7: Send request and validate response
     response = api_client.create_bundle(manifest)
-    
+
     # Validate that server-returned merkle root matches our computed one
     if response.merkle_root != computed_merkle_root:
         raise ValueError(f"Merkle root mismatch: expected {computed_merkle_root}, got {response.merkle_root}")
