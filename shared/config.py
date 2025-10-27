@@ -40,10 +40,14 @@ def get_tmp_dir() -> Path:
 
 def ensure_directories():
     """Create necessary directories if they don't exist."""
-    get_blobs_dir().mkdir(parents=True, exist_ok=True)
-    get_bundle_manifests_dir().mkdir(parents=True, exist_ok=True)
-    get_bundle_summaries_dir().mkdir(parents=True, exist_ok=True)
-    get_tmp_dir().mkdir(parents=True, exist_ok=True)
+    paths = [
+        get_blobs_dir(),
+        get_bundle_manifests_dir(),
+        get_bundle_summaries_dir(),
+        get_tmp_dir(),
+    ]
+    for p in paths:
+        p.mkdir(parents=True, exist_ok=True)
 
 
 # Maximum upload size

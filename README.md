@@ -12,7 +12,7 @@ https://www.loom.com/share/0c885d3c27c04abc97c6b49066cecf00?sid=d907a404-ac68-45
 ### 1. Start the server
 
 ```bash
-./api/scripts/start.sh
+./scripts/api.sh
 ```
 
 The server will auto-install dependencies and run on http://localhost:8000
