@@ -11,8 +11,9 @@ def test_create_bundle_simple():
     """Test creating a simple bundle with one file."""
     # Use real fixture file content
     from pathlib import Path
+
     fixture_file = Path("fixtures/test_data/single_file.txt")
-    with open(fixture_file, 'rb') as f:
+    with open(fixture_file, "rb") as f:
         content = f.read()
     hash_val = create_blob(content)
 
@@ -21,7 +22,7 @@ def test_create_bundle_simple():
         bundle_path="single_file.txt",
         size_bytes=len(content),
         hash=hash_val,
-        hash_algo="sha256"
+        hash_algo="sha256",
     )
     merkle_root = compute_merkle_root([blob])
 
@@ -34,12 +35,12 @@ def test_create_bundle_simple():
                     "bundle_path": "single_file.txt",
                     "size_bytes": len(content),
                     "hash": hash_val,
-                    "hash_algo": "sha256"
+                    "hash_algo": "sha256",
                 }
             ],
             "hash_algo": "sha256",
-            "merkle_root": merkle_root
-        }
+            "merkle_root": merkle_root,
+        },
     )
     assert response.status_code == 201
     data = response.json()
@@ -100,12 +101,14 @@ def test_create_bundle_multiple_files():
     total_bytes = 0
     for content, path in files_data:
         hash_val = create_blob(content)
-        files_payload.append({
-            "bundle_path": path,
-            "size_bytes": len(content),
-            "hash": hash_val,
-            "hash_algo": "sha256"
-        })
+        files_payload.append(
+            {
+                "bundle_path": path,
+                "size_bytes": len(content),
+                "hash": hash_val,
+                "hash_algo": "sha256",
+            }
+        )
         blobs.append(
             Blob(
                 bundle_path=path,
@@ -118,11 +121,15 @@ def test_create_bundle_multiple_files():
 
     # Compute merkle root
     merkle_root = compute_merkle_root(blobs)
-    
+
     # Create bundle
     response = requests.post(
         f"{BASE_URL}/bundles",
-        json={"files": files_payload, "hash_algo": "sha256", "merkle_root": merkle_root}
+        json={
+            "files": files_payload,
+            "hash_algo": "sha256",
+            "merkle_root": merkle_root,
+        },
     )
     assert response.status_code == 201
     data = response.json()
@@ -151,10 +158,7 @@ def test_create_bundle_missing_blob():
 
     # Create blob object for merkle root computation (even though blob doesn't exist)
     blob = Blob(
-        bundle_path="file.txt",
-        size_bytes=100,
-        hash=fake_hash,
-        hash_algo="sha256"
+        bundle_path="file.txt", size_bytes=100, hash=fake_hash, hash_algo="sha256"
     )
     merkle_root = compute_merkle_root([blob])
 
@@ -166,12 +170,12 @@ def test_create_bundle_missing_blob():
                     "bundle_path": "file.txt",
                     "size_bytes": 100,
                     "hash": fake_hash,
-                    "hash_algo": "sha256"
+                    "hash_algo": "sha256",
                 }
             ],
             "hash_algo": "sha256",
-            "merkle_root": merkle_root
-        }
+            "merkle_root": merkle_root,
+        },
     )
     assert response.status_code == 409
 
@@ -189,17 +193,17 @@ def test_create_bundle_duplicate_paths():
                     "bundle_path": "same.txt",
                     "size_bytes": len(content),
                     "hash": hash_val,
-                    "hash_algo": "sha256"
+                    "hash_algo": "sha256",
                 },
                 {
                     "bundle_path": "same.txt",  # Duplicate
                     "size_bytes": len(content),
                     "hash": hash_val,
-                    "hash_algo": "sha256"
-                }
+                    "hash_algo": "sha256",
+                },
             ],
-            "hash_algo": "sha256"
-        }
+            "hash_algo": "sha256",
+        },
     )
     assert response.status_code == 422
 
@@ -217,11 +221,11 @@ def test_create_bundle_invalid_path_absolute():
                     "bundle_path": "/absolute/path.txt",
                     "size_bytes": len(content),
                     "hash": hash_val,
-                    "hash_algo": "sha256"
+                    "hash_algo": "sha256",
                 }
             ],
-            "hash_algo": "sha256"
-        }
+            "hash_algo": "sha256",
+        },
     )
     assert response.status_code == 422
 
@@ -239,11 +243,11 @@ def test_create_bundle_invalid_path_dotdot():
                     "bundle_path": "../etc/passwd",
                     "size_bytes": len(content),
                     "hash": hash_val,
-                    "hash_algo": "sha256"
+                    "hash_algo": "sha256",
                 }
             ],
-            "hash_algo": "sha256"
-        }
+            "hash_algo": "sha256",
+        },
     )
     assert response.status_code == 422
 
@@ -258,11 +262,11 @@ def test_create_bundle_invalid_hash():
                     "bundle_path": "file.txt",
                     "size_bytes": 100,
                     "hash": "invalid",  # Too short
-                    "hash_algo": "sha256"
+                    "hash_algo": "sha256",
                 }
             ],
-            "hash_algo": "sha256"
-        }
+            "hash_algo": "sha256",
+        },
     )
     assert response.status_code == 422
 
@@ -280,11 +284,11 @@ def test_create_bundle_negative_size():
                     "bundle_path": "file.txt",
                     "size_bytes": -100,
                     "hash": hash_val,
-                    "hash_algo": "sha256"
+                    "hash_algo": "sha256",
                 }
             ],
-            "hash_algo": "sha256"
-        }
+            "hash_algo": "sha256",
+        },
     )
     assert response.status_code == 422
 
@@ -293,14 +297,10 @@ def test_create_bundle_empty_files():
     """Test creating a bundle with no files."""
     # Compute merkle root for empty files
     merkle_root = compute_merkle_root([])
-    
+
     response = requests.post(
         f"{BASE_URL}/bundles",
-        json={
-            "files": [],
-            "hash_algo": "sha256",
-            "merkle_root": merkle_root
-        }
+        json={"files": [], "hash_algo": "sha256", "merkle_root": merkle_root},
     )
     assert response.status_code == 201
     data = response.json()
@@ -338,12 +338,14 @@ def test_create_bundle_statistics():
     expected_total = 0
     for content, path in files_data:
         hash_val = create_blob(content)
-        files_payload.append({
-            "bundle_path": path,
-            "size_bytes": len(content),
-            "hash": hash_val,
-            "hash_algo": "sha256"
-        })
+        files_payload.append(
+            {
+                "bundle_path": path,
+                "size_bytes": len(content),
+                "hash": hash_val,
+                "hash_algo": "sha256",
+            }
+        )
         expected_total += len(content)
         blobs.append(
             Blob(
@@ -356,15 +358,19 @@ def test_create_bundle_statistics():
 
     # Compute merkle root
     merkle_root = compute_merkle_root(blobs)
-    
+
     response = requests.post(
         f"{BASE_URL}/bundles",
-        json={"files": files_payload, "hash_algo": "sha256", "merkle_root": merkle_root}
+        json={
+            "files": files_payload,
+            "hash_algo": "sha256",
+            "merkle_root": merkle_root,
+        },
     )
     assert response.status_code == 201
 
     # Verify statistics
-    bundle_id = response.json()['id']
+    bundle_id = response.json()["id"]
     expected_root = compute_merkle_root(blobs)
     manifest_path = Path("api/.data") / "bundles" / "manifests" / f"{bundle_id}.json"
     summary_path = Path("api/.data") / "bundles" / "summaries" / f"{bundle_id}.json"
@@ -416,12 +422,14 @@ def test_create_bundle_response_merkle_root_matches_manual():
     payload_files = []
     for content, path in files:
         hash_val = create_blob(content)
-        payload_files.append({
-            "bundle_path": path,
-            "size_bytes": len(content),
-            "hash": hash_val,
-            "hash_algo": "sha256",
-        })
+        payload_files.append(
+            {
+                "bundle_path": path,
+                "size_bytes": len(content),
+                "hash": hash_val,
+                "hash_algo": "sha256",
+            }
+        )
 
     manual_leaves = []
     for path, hash_val in sorted((f["bundle_path"], f["hash"]) for f in payload_files):
@@ -431,7 +439,11 @@ def test_create_bundle_response_merkle_root_matches_manual():
 
     response = requests.post(
         f"{BASE_URL}/bundles",
-        json={"files": payload_files, "hash_algo": "sha256", "merkle_root": manual_root},
+        json={
+            "files": payload_files,
+            "hash_algo": "sha256",
+            "merkle_root": manual_root,
+        },
     )
     assert response.status_code == 201
     data = response.json()

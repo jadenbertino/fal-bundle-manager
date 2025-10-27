@@ -20,6 +20,7 @@ from shared.api_contracts.create_bundle import BundleCreateResponse
 # 1. FILE DISCOVERY TESTS
 # ============================================================================
 
+
 class TestFileDiscovery:
     """Tests for file discovery logic."""
 
@@ -73,6 +74,7 @@ class TestFileDiscovery:
 # 2. HASHING TESTS
 # ============================================================================
 
+
 class TestHashing:
     """Tests for file hashing logic."""
 
@@ -85,7 +87,7 @@ class TestHashing:
         # Verify hash properties
         assert len(result) == 64
         assert result.islower()
-        assert all(c in '0123456789abcdef' for c in result)
+        assert all(c in "0123456789abcdef" for c in result)
 
     def test_hash_large_file(self):
         """Test SHA-256 calculation for a large file (streaming)."""
@@ -120,6 +122,7 @@ class TestHashing:
 # 3. PATH NORMALIZATION TESTS
 # ============================================================================
 
+
 class TestPathNormalization:
     """Tests for path normalization in file discovery."""
 
@@ -130,7 +133,7 @@ class TestPathNormalization:
         result = discover_files([str(nested_dir)])
 
         # Should use forward slashes even on Windows
-        buried_file = [f for f in result if 'buried' in f.relative_path][0]
+        buried_file = [f for f in result if "buried" in f.relative_path][0]
         assert "deep/buried.txt" == buried_file.relative_path
         assert "\\" not in buried_file.relative_path
 
@@ -155,6 +158,7 @@ class TestPathNormalization:
 # ============================================================================
 # 4. API CLIENT MOCK TESTS
 # ============================================================================
+
 
 class TestBundleCreationWithMocks:
     """Tests for bundle creation using mocked API client."""
@@ -251,6 +255,7 @@ class TestBundleCreationWithMocks:
 # ============================================================================
 # 5. INTEGRATION TESTS
 # ============================================================================
+
 
 class TestBundleCreationIntegration:
     """Integration tests for full bundle creation workflow."""

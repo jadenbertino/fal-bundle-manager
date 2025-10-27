@@ -16,7 +16,7 @@ def create_bundle(
     input_paths: list[str],
     api_client,  # BundlesAPIClient - avoiding circular import
     bundle_id: str | None = None,
-    base_dir: str | None = None
+    base_dir: str | None = None,
 ) -> BundleCreateResponse:
     """
     Create a bundle from local files.
@@ -53,7 +53,7 @@ def create_bundle(
             bundle_path=file.relative_path,
             size_bytes=file.size_bytes,
             hash=file_hash,
-            hash_algo="sha256"
+            hash_algo="sha256",
         )
         blobs.append(blob)
 
@@ -64,27 +64,33 @@ def create_bundle(
 
     # Step 4: Upload missing blobs concurrently
     if missing_hashes:
-        is_mock_api_client = not (hasattr(api_client, 'base_url') and isinstance(getattr(api_client, 'base_url', None), str))
+        is_mock_api_client = not (
+            hasattr(api_client, "base_url")
+            and isinstance(getattr(api_client, "base_url", None), str)
+        )
         if is_mock_api_client:
             # Fall back to synchronous uploads for mocked clients in tests
             for blob in blobs:
                 if blob.hash in missing_hashes:
-                    file = next(f for f in discovered_files if f.relative_path == blob.bundle_path)
-                    with open(file.absolute_path, 'rb') as f:
+                    file = next(
+                        f
+                        for f in discovered_files
+                        if f.relative_path == blob.bundle_path
+                    )
+                    with open(file.absolute_path, "rb") as f:
                         api_client.upload_blob(blob.hash, blob.size_bytes, f)
         else:
             # Use async concurrent uploads for real API client
-            asyncio.run(_upload_blobs_async(api_client, blobs, discovered_files, missing_hashes))
+            asyncio.run(
+                _upload_blobs_async(api_client, blobs, discovered_files, missing_hashes)
+            )
 
     # Step 5: Compute merkle root
     computed_merkle_root = compute_merkle_root(blobs)
 
     # Step 6: Create bundle
     manifest = BundleManifestDraft(
-        id=bundle_id,
-        files=blobs,
-        hash_algo="sha256",
-        merkle_root=computed_merkle_root
+        files=blobs, hash_algo="sha256", merkle_root=computed_merkle_root
     )
 
     # Step 7: Send request and validate response
@@ -92,7 +98,9 @@ def create_bundle(
 
     # Validate that server-returned merkle root matches our computed one
     if response.merkle_root != computed_merkle_root:
-        raise ValueError(f"Merkle root mismatch: expected {computed_merkle_root}, got {response.merkle_root}")
+        raise ValueError(
+            f"Merkle root mismatch: expected {computed_merkle_root}, got {response.merkle_root}"
+        )
 
     return response
 
@@ -103,7 +111,7 @@ async def _upload_blob_async(
     blob_hash: str,
     size_bytes: int,
     file_path: str,
-    timeout: int
+    timeout: int,
 ) -> bool:
     """
     Upload a single blob asynchronously.
@@ -122,14 +130,14 @@ async def _upload_blob_async(
     url = f"{base_url}/blobs/{blob_hash}"
     params = {"size_bytes": size_bytes}
 
-    with open(file_path, 'rb') as f:
+    with open(file_path, "rb") as f:
         # Convert timeout to proper type (handle Mock objects in tests)
         timeout_value = timeout if isinstance(timeout, (int, float)) else 300
         async with session.put(
             url,
             params=params,
             data=f,
-            timeout=aiohttp.ClientTimeout(total=timeout_value)
+            timeout=aiohttp.ClientTimeout(total=timeout_value),
         ) as response:
             response.raise_for_status()
             return response.status == 201
@@ -152,14 +160,16 @@ async def _upload_blobs_async(api_client, blobs, discovered_files, missing_hashe
         for blob in blobs:
             if blob.hash in missing_hashes:
                 # Find the corresponding file
-                file = next(f for f in discovered_files if f.relative_path == blob.bundle_path)
+                file = next(
+                    f for f in discovered_files if f.relative_path == blob.bundle_path
+                )
                 task = _upload_blob_async(
                     session,
                     api_client.base_url,
                     blob.hash,
                     blob.size_bytes,
                     file.absolute_path,
-                    api_client.timeout
+                    api_client.timeout,
                 )
                 tasks.append(task)
 

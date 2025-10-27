@@ -13,8 +13,8 @@ from shared.config import API_TIMEOUT, API_URL
 
 
 @click.command()
-@click.argument('paths', nargs=-1, required=True, type=click.Path())
-@click.option('--api-url', default=API_URL, help='API server URL')
+@click.argument("paths", nargs=-1, required=True, type=click.Path())
+@click.option("--api-url", default=API_URL, help="API server URL")
 def create(paths, api_url):
     """
     Create a bundle from local files and directories.
@@ -27,7 +27,9 @@ def create(paths, api_url):
         for p in paths:
             path = Path(p).resolve()
             if not path.exists():
-                click.echo(f"Error: Path '{p}' does not exist (resolved to: {path})", err=True)
+                click.echo(
+                    f"Error: Path '{p}' does not exist (resolved to: {path})", err=True
+                )
                 click.echo(f"Current working directory: {os.getcwd()}", err=True)
                 sys.exit(2)
             validated_paths.append(str(path))

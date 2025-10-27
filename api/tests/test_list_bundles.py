@@ -62,17 +62,23 @@ def test_list_bundles_multiple():
 
     # Find bundles by their characteristics
     # Bundle 1: 1 file, 5 bytes
-    b1 = next((b for b in bundles if b["file_count"] == 1 and b["total_bytes"] == 5), None)
+    b1 = next(
+        (b for b in bundles if b["file_count"] == 1 and b["total_bytes"] == 5), None
+    )
     assert b1 is not None
     assert len(b1["merkle_root"]) == 64
 
     # Bundle 2: 2 files, 10 bytes
-    b2 = next((b for b in bundles if b["file_count"] == 2 and b["total_bytes"] == 10), None)
+    b2 = next(
+        (b for b in bundles if b["file_count"] == 2 and b["total_bytes"] == 10), None
+    )
     assert b2 is not None
     assert len(b2["merkle_root"]) == 64
 
     # Bundle 3: 1 file, 500 bytes
-    b3 = next((b for b in bundles if b["file_count"] == 1 and b["total_bytes"] == 500), None)
+    b3 = next(
+        (b for b in bundles if b["file_count"] == 1 and b["total_bytes"] == 500), None
+    )
     assert b3 is not None
     assert len(b3["merkle_root"]) == 64
 
@@ -96,9 +102,11 @@ def test_list_bundles_sorted_by_created_at():
 
     # Find our test bundles by looking for bundles with 1 file and 5 bytes
     # (each of our test bundles has this characteristic)
-    test_bundles = [b for b in bundles if b["file_count"] == 1 and b["total_bytes"] == 5]
+    test_bundles = [
+        b for b in bundles if b["file_count"] == 1 and b["total_bytes"] == 5
+    ]
     assert len(test_bundles) >= 3  # We created 3 bundles, but there might be others
-    
+
     # Verify all test bundles have valid merkle roots
     for entry in test_bundles:
         assert len(entry["merkle_root"]) == 64
@@ -123,7 +131,9 @@ def test_list_bundles_response_schema():
 
     # Find our bundle by its characteristics (1 file, 11 bytes for "schema test")
     # We need to be more specific since there might be other bundles with same characteristics
-    bundles_with_1_file_11_bytes = [b for b in data["bundles"] if b["file_count"] == 1 and b["total_bytes"] == 11]
+    bundles_with_1_file_11_bytes = [
+        b for b in data["bundles"] if b["file_count"] == 1 and b["total_bytes"] == 11
+    ]
     assert len(bundles_with_1_file_11_bytes) >= 1
     bundle = bundles_with_1_file_11_bytes[0]  # Use the first one we find
 
@@ -167,7 +177,14 @@ def test_list_bundles_statistics_accuracy():
     data = response.json()
 
     # Find bundle by its characteristics (3 files, 400 bytes)
-    bundle = next((b for b in data["bundles"] if b["file_count"] == 3 and b["total_bytes"] == 400), None)
+    bundle = next(
+        (
+            b
+            for b in data["bundles"]
+            if b["file_count"] == 3 and b["total_bytes"] == 400
+        ),
+        None,
+    )
     assert bundle is not None
     assert bundle["file_count"] == 3
     assert bundle["total_bytes"] == 400  # 100 + 250 + 50
@@ -183,7 +200,10 @@ def test_list_bundles_empty_bundle():
     data = response.json()
 
     # Find empty bundle by its characteristics (0 files, 0 bytes)
-    bundle = next((b for b in data["bundles"] if b["file_count"] == 0 and b["total_bytes"] == 0), None)
+    bundle = next(
+        (b for b in data["bundles"] if b["file_count"] == 0 and b["total_bytes"] == 0),
+        None,
+    )
     assert bundle is not None
     assert bundle["file_count"] == 0
     assert bundle["total_bytes"] == 0

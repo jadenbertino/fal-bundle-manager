@@ -28,9 +28,11 @@ def create_blob(content: bytes) -> str:
     response = requests.put(
         f"{BASE_URL}/blobs/{hash_val}",
         params={"size_bytes": len(content)},
-        data=content
+        data=content,
     )
-    assert response.status_code in [200, 201], f"Failed to create blob: {response.status_code}"
+    assert response.status_code in [200, 201], (
+        f"Failed to create blob: {response.status_code}"
+    )
     return hash_val
 
 
@@ -55,7 +57,7 @@ def create_bundle(files_data: list[tuple[bytes, str]]) -> dict:
             "bundle_path": path,
             "size_bytes": len(content),
             "hash": hash_val,
-            "hash_algo": "sha256"
+            "hash_algo": "sha256",
         }
         files_payload.append(blob_data)
         blobs.append(Blob(**blob_data))
@@ -63,8 +65,14 @@ def create_bundle(files_data: list[tuple[bytes, str]]) -> dict:
     # Compute merkle root
     merkle_root = compute_merkle_root(blobs)
 
-    payload = {"files": files_payload, "hash_algo": "sha256", "merkle_root": merkle_root}
+    payload = {
+        "files": files_payload,
+        "hash_algo": "sha256",
+        "merkle_root": merkle_root,
+    }
 
     response = requests.post(f"{BASE_URL}/bundles", json=payload)
-    assert response.status_code == 201, f"Failed to create bundle: {response.status_code}"
+    assert response.status_code == 201, (
+        f"Failed to create bundle: {response.status_code}"
+    )
     return response.json()

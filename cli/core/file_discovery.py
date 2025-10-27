@@ -7,12 +7,15 @@ from typing import NamedTuple
 
 class DiscoveredFile(NamedTuple):
     """Represents a discovered file with its metadata."""
+
     absolute_path: Path
     relative_path: str  # Relative path to use in bundle
     size_bytes: int
 
 
-def discover_files(input_paths: list[str], base_dir: str | None = None) -> list[DiscoveredFile]:
+def discover_files(
+    input_paths: list[str], base_dir: str | None = None
+) -> list[DiscoveredFile]:
     """
     Discover all files from the given input paths.
 
@@ -62,7 +65,9 @@ def discover_files(input_paths: list[str], base_dir: str | None = None) -> list[
                     file_path = Path(root) / filename
                     # Skip symlinks for now (design decision)
                     if not file_path.is_symlink():
-                        discovered.append(_create_discovered_file(file_path, base_dir_path))
+                        discovered.append(
+                            _create_discovered_file(file_path, base_dir_path)
+                        )
 
     if not discovered:
         raise ValueError("No files discovered from input paths")
@@ -81,7 +86,7 @@ def _find_common_parent(paths: list[Path]) -> Path:
 
     # Find common prefix
     common = []
-    for parts in zip(*all_parts):
+    for parts in zip(*all_parts, strict=False):
         if len(set(parts)) == 1:
             common.append(parts[0])
         else:
@@ -97,7 +102,7 @@ def _create_discovered_file(file_path: Path, base_dir: Path) -> DiscoveredFile:
         rel_path = file_path.relative_to(base_dir)
     except ValueError:
         # file_path is not relative to base_dir, use just the filename
-        rel_path = file_path.name
+        rel_path = Path(file_path.name)
 
     # Convert to POSIX-style path (forward slashes) for cross-platform compatibility
     bundle_path = rel_path.as_posix()
@@ -106,7 +111,5 @@ def _create_discovered_file(file_path: Path, base_dir: Path) -> DiscoveredFile:
     size_bytes = file_path.stat().st_size
 
     return DiscoveredFile(
-        absolute_path=file_path,
-        relative_path=bundle_path,
-        size_bytes=size_bytes
+        absolute_path=file_path, relative_path=bundle_path, size_bytes=size_bytes
     )

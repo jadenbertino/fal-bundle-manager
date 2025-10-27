@@ -15,11 +15,7 @@ router = APIRouter()
 
 
 @router.put("/blobs/{hash}")
-async def upload_blob(
-    hash: str,
-    size_bytes: int = Query(..., ge=0),
-    request: Request = None
-):
+async def upload_blob(hash: str, request: Request, size_bytes: int = Query(..., ge=0)):
     """
     Upload a blob by its content hash.
 
@@ -45,21 +41,18 @@ async def upload_blob(
     try:
         validate_sha256_hash(hash)
     except ValueError as e:
-        raise HTTPException(status_code=422, detail=str(e))
+        raise HTTPException(status_code=422, detail=str(e)) from e
 
     # Check size limit
     if size_bytes > MAX_UPLOAD_BYTES:
         raise HTTPException(
             status_code=413,
-            detail=f"File size {size_bytes} exceeds maximum allowed {MAX_UPLOAD_BYTES}"
+            detail=f"File size {size_bytes} exceeds maximum allowed {MAX_UPLOAD_BYTES}",
         )
 
     # Check if blob already exists (idempotency)
     if blob_exists(hash):
-        return JSONResponse(
-            status_code=200,
-            content={"status": "exists", "hash": hash}
-        )
+        return JSONResponse(status_code=200, content={"status": "exists", "hash": hash})
 
     # Prepare temporary file for upload
     tmp_dir = get_tmp_dir()
@@ -84,7 +77,7 @@ async def upload_blob(
             tmp_path.unlink()  # Remove invalid file
             raise HTTPException(
                 status_code=409,
-                detail=f"Hash mismatch: expected {hash}, got {calculated_hash}"
+                detail=f"Hash mismatch: expected {hash}, got {calculated_hash}",
             )
 
         # Move to final location with fanout structure
@@ -94,8 +87,7 @@ async def upload_blob(
 
         # Return success
         return JSONResponse(
-            status_code=201,
-            content={"status": "created", "hash": hash}
+            status_code=201, content={"status": "created", "hash": hash}
         )
 
     except HTTPException:
@@ -105,4 +97,4 @@ async def upload_blob(
         # Clean up temp file on error
         if tmp_path.exists():
             tmp_path.unlink()
-        raise HTTPException(status_code=500, detail=f"Storage error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Storage error: {str(e)}") from e

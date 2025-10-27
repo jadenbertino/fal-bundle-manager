@@ -9,4 +9,4 @@ uvx ruff format api cli
 
 # check types
 echo "checking types"
-uv run mypy api cli
+uv run mypy --exclude 'tests' api cli

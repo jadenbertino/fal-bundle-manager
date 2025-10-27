@@ -37,14 +37,12 @@ async def create_bundle(request: BundleManifestDraft):
     """
     try:
         # Verify all referenced blobs exist
-        missing_hashes = []
-        for file in request.files:
-            if not blob_exists(file.hash):
-                missing_hashes.append(file.hash)
+        missing_hashes = [
+            file.hash for file in request.files if not blob_exists(file.hash)
+        ]
         if missing_hashes:
             raise HTTPException(
-                status_code=409,
-                detail=f"Missing blobs: {', '.join(missing_hashes)}"
+                status_code=409, detail=f"Missing blobs: {', '.join(missing_hashes)}"
             )
 
         # Generate bundle ID
@@ -59,7 +57,7 @@ async def create_bundle(request: BundleManifestDraft):
         if request.merkle_root != computed_merkle_root:
             raise HTTPException(
                 status_code=409,
-                detail=f"Merkle root mismatch: expected {computed_merkle_root}, got {request.merkle_root}"
+                detail=f"Merkle root mismatch: expected {computed_merkle_root}, got {request.merkle_root}",
             )
 
         merkle_root = computed_merkle_root
@@ -75,7 +73,7 @@ async def create_bundle(request: BundleManifestDraft):
             "files": [file.model_dump() for file in request.files],
             "file_count": file_count,
             "total_bytes": total_bytes,
-            "merkle_root": merkle_root
+            "merkle_root": merkle_root,
         }
 
         # Build summary (does NOT include files)
@@ -85,7 +83,7 @@ async def create_bundle(request: BundleManifestDraft):
             "hash_algo": request.hash_algo,
             "file_count": file_count,
             "total_bytes": total_bytes,
-            "merkle_root": merkle_root
+            "merkle_root": merkle_root,
         }
 
         # Write manifest to storage
@@ -125,12 +123,12 @@ async def create_bundle(request: BundleManifestDraft):
             content={
                 "id": bundle_id,
                 "created_at": created_at,
-                "merkle_root": merkle_root
-            }
+                "merkle_root": merkle_root,
+            },
         )
 
     except HTTPException:
         # Re-raise HTTP exceptions
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Storage error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Storage error: {str(e)}") from e

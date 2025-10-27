@@ -50,7 +50,7 @@ def sample_bundles():
 
 def test_list_bundles_success(runner, sample_bundles):
     """Test successful listing of bundles."""
-    with patch('cli.commands.list.BundlesAPIClient') as mock_client:
+    with patch("cli.commands.list.BundlesAPIClient") as mock_client:
         # Setup mock
         mock_instance = Mock()
         mock_instance.list_bundles.return_value = sample_bundles
@@ -69,14 +69,23 @@ def test_list_bundles_success(runner, sample_bundles):
         assert "01K6GZ396JT9343XTQ89G69Y3W" in result.output
         assert "01K6GZ3GMJYRAJZ60JD178HT6T" in result.output
         assert "01K6GZ3Q2CSWDDC52XK6ZQN15F" in result.output
-        assert "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" in result.output
-        assert "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" in result.output
-        assert "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc" in result.output
+        assert (
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            in result.output
+        )
+        assert (
+            "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+            in result.output
+        )
+        assert (
+            "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            in result.output
+        )
 
 
 def test_list_bundles_empty(runner):
     """Test listing when no bundles exist."""
-    with patch('cli.commands.list.BundlesAPIClient') as mock_client:
+    with patch("cli.commands.list.BundlesAPIClient") as mock_client:
         # Setup mock
         mock_instance = Mock()
         mock_instance.list_bundles.return_value = BundleListResponse(bundles=[])
@@ -93,7 +102,7 @@ def test_list_bundles_empty(runner):
 
 def test_list_bundles_network_error(runner):
     """Test handling of network connection error."""
-    with patch('cli.commands.list.BundlesAPIClient') as mock_client:
+    with patch("cli.commands.list.BundlesAPIClient") as mock_client:
         # Setup mock to raise ConnectionError
         mock_instance = Mock()
         mock_instance.list_bundles.side_effect = requests.exceptions.ConnectionError()
@@ -109,7 +118,7 @@ def test_list_bundles_network_error(runner):
 
 def test_list_bundles_timeout_error(runner):
     """Test handling of request timeout."""
-    with patch('cli.commands.list.BundlesAPIClient') as mock_client:
+    with patch("cli.commands.list.BundlesAPIClient") as mock_client:
         # Setup mock to raise Timeout
         mock_instance = Mock()
         mock_instance.list_bundles.side_effect = requests.exceptions.Timeout()
@@ -161,7 +170,7 @@ def test_format_timestamp():
 
 def test_list_bundles_formats_sizes_correctly(runner, sample_bundles):
     """Test that sizes are formatted correctly in output."""
-    with patch('cli.commands.list.BundlesAPIClient') as mock_client:
+    with patch("cli.commands.list.BundlesAPIClient") as mock_client:
         # Setup mock
         mock_instance = Mock()
         mock_instance.list_bundles.return_value = sample_bundles
@@ -178,7 +187,7 @@ def test_list_bundles_formats_sizes_correctly(runner, sample_bundles):
 
 def test_list_bundles_formats_dates_correctly(runner, sample_bundles):
     """Test that dates are formatted correctly in output."""
-    with patch('cli.commands.list.BundlesAPIClient') as mock_client:
+    with patch("cli.commands.list.BundlesAPIClient") as mock_client:
         # Setup mock
         mock_instance = Mock()
         mock_instance.list_bundles.return_value = sample_bundles

@@ -17,7 +17,7 @@ def hash_file_sha256(file_path: Path, chunk_size: int = 65536) -> str:
     """
     sha256 = hashlib.sha256()
 
-    with open(file_path, 'rb') as f:
+    with open(file_path, "rb") as f:
         while chunk := f.read(chunk_size):
             sha256.update(chunk)
 

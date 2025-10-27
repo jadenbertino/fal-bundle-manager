@@ -8,13 +8,14 @@ from shared.config import get_blobs_dir
 def test_create_blob_new():
     """Test creating a new blob."""
     import time
+
     content = f"test content for new blob {time.time()}".encode()
     hash_val = calculate_sha256(content)
 
     response = requests.put(
         f"{BASE_URL}/blobs/{hash_val}",
         params={"size_bytes": len(content)},
-        data=content
+        data=content,
     )
     assert response.status_code == 201
     data = response.json()
@@ -33,6 +34,7 @@ def test_create_blob_new():
 def test_create_blob_idempotent():
     """Test that uploading same blob twice is idempotent."""
     import time
+
     content = f"idempotent test content {time.time()}".encode()
     hash_val = calculate_sha256(content)
 
@@ -40,7 +42,7 @@ def test_create_blob_idempotent():
     response1 = requests.put(
         f"{BASE_URL}/blobs/{hash_val}",
         params={"size_bytes": len(content)},
-        data=content
+        data=content,
     )
     assert response1.status_code == 201
 
@@ -48,7 +50,7 @@ def test_create_blob_idempotent():
     response2 = requests.put(
         f"{BASE_URL}/blobs/{hash_val}",
         params={"size_bytes": len(content)},
-        data=content
+        data=content,
     )
     assert response2.status_code == 200
     data = response2.json()
@@ -68,7 +70,7 @@ def test_create_blob_hash_mismatch():
     response = requests.put(
         f"{BASE_URL}/blobs/{wrong_hash}",
         params={"size_bytes": len(content)},
-        data=content
+        data=content,
     )
     assert response.status_code == 409
 
@@ -85,7 +87,7 @@ def test_create_blob_invalid_hash_length():
     response = requests.put(
         f"{BASE_URL}/blobs/{invalid_hash}",
         params={"size_bytes": len(content)},
-        data=content
+        data=content,
     )
     assert response.status_code == 422  # FastAPI validation error
 
@@ -98,7 +100,7 @@ def test_create_blob_invalid_hash_chars():
     response = requests.put(
         f"{BASE_URL}/blobs/{invalid_hash}",
         params={"size_bytes": len(content)},
-        data=content
+        data=content,
     )
     assert response.status_code == 422
 
@@ -111,7 +113,7 @@ def test_create_blob_uppercase_hash():
     response = requests.put(
         f"{BASE_URL}/blobs/{hash_val}",
         params={"size_bytes": len(content)},
-        data=content
+        data=content,
     )
     assert response.status_code == 422
 
@@ -122,9 +124,7 @@ def test_create_blob_negative_size():
     hash_val = calculate_sha256(content)
 
     response = requests.put(
-        f"{BASE_URL}/blobs/{hash_val}",
-        params={"size_bytes": -100},
-        data=content
+        f"{BASE_URL}/blobs/{hash_val}", params={"size_bytes": -100}, data=content
     )
     assert response.status_code == 422
 
@@ -138,9 +138,7 @@ def test_create_blob_exceeds_max_size():
     too_large = 2 * 1024 * 1024 * 1024  # 2GB
 
     response = requests.put(
-        f"{BASE_URL}/blobs/{hash_val}",
-        params={"size_bytes": too_large},
-        data=content
+        f"{BASE_URL}/blobs/{hash_val}", params={"size_bytes": too_large}, data=content
     )
     assert response.status_code == 413
 
@@ -156,9 +154,7 @@ def test_create_blob_empty_file():
         blob_path.unlink()
 
     response = requests.put(
-        f"{BASE_URL}/blobs/{hash_val}",
-        params={"size_bytes": 0},
-        data=content
+        f"{BASE_URL}/blobs/{hash_val}", params={"size_bytes": 0}, data=content
     )
     assert response.status_code == 201
     data = response.json()
@@ -179,7 +175,7 @@ def test_create_blob_large_file():
     response = requests.put(
         f"{BASE_URL}/blobs/{hash_val}",
         params={"size_bytes": len(content)},
-        data=content
+        data=content,
     )
     assert response.status_code == 201
     data = response.json()
@@ -203,7 +199,7 @@ def test_create_blob_fanout_structure():
     response = requests.put(
         f"{BASE_URL}/blobs/{hash_val}",
         params={"size_bytes": len(content)},
-        data=content
+        data=content,
     )
     assert response.status_code == 201
 

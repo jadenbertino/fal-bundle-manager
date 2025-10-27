@@ -11,7 +11,7 @@ from cli.commands.download import (
     get_file_extension,
     handle_file_conflict,
     download_with_progress,
-    validate_format
+    validate_format,
 )
 import requests
 
@@ -29,6 +29,7 @@ def mock_chunks():
 
 
 # Test utility functions
+
 
 def test_get_file_extension():
     """Test file extension mapping."""
@@ -126,11 +127,12 @@ def test_download_with_progress_filters_empty_chunks(tmp_path):
 
 # Test download command scenarios (from Gherkin)
 
+
 def test_download_bundle_success_default_format(runner):
     """
     Scenario: Successfully download bundle with default format
     """
-    with patch('cli.commands.download.BundlesAPIClient') as mock_client:
+    with patch("cli.commands.download.BundlesAPIClient") as mock_client:
         # Setup mock
         mock_instance = Mock()
         mock_instance.download_bundle.return_value = iter([b"test", b"data"])
@@ -153,7 +155,7 @@ def test_download_bundle_success_explicit_format(runner):
     """
     Scenario: Successfully download bundle with explicit format
     """
-    with patch('cli.commands.download.BundlesAPIClient') as mock_client:
+    with patch("cli.commands.download.BundlesAPIClient") as mock_client:
         # Setup mock
         mock_instance = Mock()
         mock_instance.download_bundle.return_value = iter([b"test", b"data"])
@@ -173,7 +175,7 @@ def test_download_bundle_not_found(runner):
     """
     Scenario: Download bundle not found
     """
-    with patch('cli.commands.download.BundlesAPIClient') as mock_client:
+    with patch("cli.commands.download.BundlesAPIClient") as mock_client:
         # Setup mock to raise 404 HTTPError
         mock_instance = Mock()
         mock_response = Mock()
@@ -196,7 +198,7 @@ def test_download_unsupported_format(runner):
     """
     Scenario: Unsupported archive format
     """
-    with patch('cli.commands.download.BundlesAPIClient') as mock_client:
+    with patch("cli.commands.download.BundlesAPIClient") as mock_client:
         # Run command
         with runner.isolated_filesystem():
             result = runner.invoke(download, ["01HQZX123ABC", "--format", "tar.bz2"])
@@ -214,10 +216,12 @@ def test_download_network_connection_failure(runner):
     """
     Scenario: Network connection failure during download
     """
-    with patch('cli.commands.download.BundlesAPIClient') as mock_client:
+    with patch("cli.commands.download.BundlesAPIClient") as mock_client:
         # Setup mock to raise ConnectionError
         mock_instance = Mock()
-        mock_instance.download_bundle.side_effect = requests.exceptions.ConnectionError()
+        mock_instance.download_bundle.side_effect = (
+            requests.exceptions.ConnectionError()
+        )
         mock_client.return_value = mock_instance
 
         # Run command
@@ -234,10 +238,12 @@ def test_download_server_unavailable(runner):
     """
     Scenario: Server unavailable
     """
-    with patch('cli.commands.download.BundlesAPIClient') as mock_client:
+    with patch("cli.commands.download.BundlesAPIClient") as mock_client:
         # Setup mock
         mock_instance = Mock()
-        mock_instance.download_bundle.side_effect = requests.exceptions.ConnectionError()
+        mock_instance.download_bundle.side_effect = (
+            requests.exceptions.ConnectionError()
+        )
         mock_client.return_value = mock_instance
 
         # Run command
@@ -253,7 +259,7 @@ def test_download_timeout_error(runner):
     """
     Scenario: Request timeout during download
     """
-    with patch('cli.commands.download.BundlesAPIClient') as mock_client:
+    with patch("cli.commands.download.BundlesAPIClient") as mock_client:
         # Setup mock to raise Timeout
         mock_instance = Mock()
         mock_instance.download_bundle.side_effect = requests.exceptions.Timeout()
@@ -272,7 +278,7 @@ def test_download_file_already_exists(runner):
     """
     Scenario: File already exists in target location
     """
-    with patch('cli.commands.download.BundlesAPIClient') as mock_client:
+    with patch("cli.commands.download.BundlesAPIClient") as mock_client:
         # Setup mock
         mock_instance = Mock()
         mock_instance.download_bundle.return_value = iter([b"new", b"data"])
@@ -298,7 +304,7 @@ def test_download_interrupted_cleanup(runner, tmp_path):
 
     Tests that temporary files are cleaned up when download fails.
     """
-    with patch('cli.commands.download.BundlesAPIClient') as mock_client:
+    with patch("cli.commands.download.BundlesAPIClient") as mock_client:
         # Setup mock to fail during iteration
         def failing_chunks():
             yield b"chunk1"
@@ -329,7 +335,7 @@ def test_download_disk_full_cleanup(runner):
 
     Tests cleanup when write fails due to disk space.
     """
-    with patch('cli.commands.download.BundlesAPIClient') as mock_client:
+    with patch("cli.commands.download.BundlesAPIClient") as mock_client:
         # Setup mock
         mock_instance = Mock()
 
@@ -341,7 +347,7 @@ def test_download_disk_full_cleanup(runner):
         mock_instance.download_bundle.return_value = chunks_generator()
         mock_client.return_value = mock_instance
 
-        with patch('cli.commands.download.download_with_progress') as mock_download:
+        with patch("cli.commands.download.download_with_progress") as mock_download:
             # Simulate disk full error
             mock_download.side_effect = IOError("No space left on device")
 
@@ -358,7 +364,7 @@ def test_download_empty_bundle(runner):
     """
     Scenario: Empty bundle download
     """
-    with patch('cli.commands.download.BundlesAPIClient') as mock_client:
+    with patch("cli.commands.download.BundlesAPIClient") as mock_client:
         # Setup mock with empty response
         mock_instance = Mock()
         mock_instance.download_bundle.return_value = iter([])
@@ -381,7 +387,7 @@ def test_download_large_file_streaming(runner):
 
     Tests that large downloads are streamed (can't fully test memory, but verify chunks work).
     """
-    with patch('cli.commands.download.BundlesAPIClient') as mock_client:
+    with patch("cli.commands.download.BundlesAPIClient") as mock_client:
         # Setup mock with many chunks (simulating 10MB file)
         def large_chunks():
             for _ in range(100):
@@ -404,7 +410,7 @@ def test_download_large_file_streaming(runner):
 
 def test_download_http_error_non_404(runner):
     """Test handling of non-404 HTTP errors."""
-    with patch('cli.commands.download.BundlesAPIClient') as mock_client:
+    with patch("cli.commands.download.BundlesAPIClient") as mock_client:
         # Setup mock to raise 500 HTTPError
         mock_instance = Mock()
         mock_response = Mock()

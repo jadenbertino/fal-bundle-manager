@@ -91,8 +91,7 @@ def test_download_bundle_explicit_zip_format():
 
     bundle_id = bundle_data["id"]
     response = requests.get(
-        f"{BASE_URL}/bundles/{bundle_id}/download",
-        params={"format": "zip"}
+        f"{BASE_URL}/bundles/{bundle_id}/download", params={"format": "zip"}
     )
     assert response.status_code == 200
     assert response.headers["Content-Type"] == "application/zip"
@@ -104,8 +103,7 @@ def test_download_bundle_unsupported_format():
 
     bundle_id = bundle_data["id"]
     response = requests.get(
-        f"{BASE_URL}/bundles/{bundle_id}/download",
-        params={"format": "tar"}
+        f"{BASE_URL}/bundles/{bundle_id}/download", params={"format": "tar"}
     )
     assert response.status_code == 415
 

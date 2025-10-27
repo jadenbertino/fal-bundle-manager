@@ -15,9 +15,9 @@ def cli():
 
 # Register commands
 cli.add_command(create)
-cli.add_command(list_cmd, name='list')
+cli.add_command(list_cmd, name="list")
 cli.add_command(download)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     cli()
