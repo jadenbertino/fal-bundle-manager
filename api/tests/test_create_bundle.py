@@ -12,7 +12,7 @@ def test_create_bundle_simple():
     # Use real fixture file content
     from pathlib import Path
 
-    fixture_file = Path("fixtures/test_data/single_file.txt")
+    fixture_file = Path("tests/fixtures/test_data/single_file.txt")
     with open(fixture_file, "rb") as f:
         content = f.read()
     hash_val = create_blob(content)
