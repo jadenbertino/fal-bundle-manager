@@ -14,6 +14,7 @@ from cli.client import BundlesAPIClient
 from shared.api_contracts.download_bundle import DownloadBundleParams
 from shared.config import API_TIMEOUT, API_URL
 
+
 @click.command()
 @click.argument("bundle_id", required=True)
 @click.option("--format", default="zip", help="Archive format (default: zip)")
@@ -29,8 +30,9 @@ def download(bundle_id, format, api_url):
         validate_format(format)
 
         # Generate output filename
+        current_dir = os.environ.get("CURRENT_DIR", Path.cwd()) or Path.cwd()
         filename = f"bundle_{bundle_id}.zip"
-        output_path = Path.cwd() / filename
+        output_path = Path(current_dir) / filename
         final_path = handle_file_conflict(output_path)
         if final_path != output_path:
             click.echo(
@@ -181,4 +183,3 @@ def validate_format(format: str) -> None:
         DownloadBundleParams(format=format)  # type: ignore[arg-type]
     except ValidationError as e:
         raise ValueError(f"Unsupported format: {format}") from e
-
