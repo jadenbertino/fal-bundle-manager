@@ -6,6 +6,7 @@ from api.routes import (
     download_bundle,
     list_bundles,
     preflight,
+    sync,
 )
 from shared.config import ensure_directories
 
@@ -20,6 +21,7 @@ app.include_router(create_blob.router)
 app.include_router(create_bundle.router)
 app.include_router(list_bundles.router)
 app.include_router(download_bundle.router)
+app.include_router(sync.router)
 
 
 @app.get("/status")

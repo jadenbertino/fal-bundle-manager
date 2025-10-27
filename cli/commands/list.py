@@ -16,6 +16,7 @@ def list_cmd(api_url):
     Displays bundles in a table with ID, file count, total size, creation date, and Merkle root (first 10 chars).
     """
     try:
+        click.echo(API_URL)
         # Fetch bundle list
         api_client = BundlesAPIClient(base_url=api_url, timeout=API_TIMEOUT)
         response = api_client.list_bundles()

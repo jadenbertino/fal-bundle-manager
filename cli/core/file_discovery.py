@@ -70,7 +70,7 @@ def discover_files(
                         )
 
     if not discovered:
-        raise ValueError("No files discovered from input paths")
+        return []
 
     return discovered
 
