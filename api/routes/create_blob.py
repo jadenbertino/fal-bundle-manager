@@ -57,8 +57,7 @@ async def upload_blob(hash: str, request: Request, size_bytes: int = Query(..., 
     # Prepare temporary file for upload
     tmp_dir = get_tmp_dir()
     tmp_dir.mkdir(parents=True, exist_ok=True)
-    timestamp = datetime.utcnow().isoformat().replace(":", "-")
-    tmp_filename = f"{timestamp}_{uuid.uuid4()}"
+    tmp_filename = f"{uuid.uuid4()}"
     tmp_path = tmp_dir / tmp_filename
 
     try:

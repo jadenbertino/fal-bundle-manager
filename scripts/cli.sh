@@ -11,16 +11,13 @@ if ! command -v uv &> /dev/null; then
     exit 1
 fi
 
-# Sync workspace dependencies
-cd "$PROJECT_ROOT"
-uv sync --quiet
-
 # Set PYTHONPATH to project root
 export PYTHONPATH="$PROJECT_ROOT"
 
 # Run CLI with all passed arguments (stay in current directory)
 # Use the program name from environment variable or default to 'fal-bundles'
 PROG_NAME="${FAL_BUNDLES_PROG_NAME:-fal-bundles}"
+export CURRENT_DIR="$(pwd)"
 uv run python -c "
 import sys
 sys.argv[0] = '$PROG_NAME'

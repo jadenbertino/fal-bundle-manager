@@ -41,10 +41,9 @@ async def download_bundle(
                 detail=f"Unsupported format '{format}'. Only 'zip' is supported.",
             )
 
-        # Check if bundle manifest exists
+        # Validate bundle manifest exists
         manifests_dir = get_bundle_manifests_dir()
         manifest_path = manifests_dir / f"{bundle_id}.json"
-
         if not manifest_path.exists():
             raise HTTPException(
                 status_code=404, detail=f"Bundle '{bundle_id}' not found"
@@ -62,17 +61,14 @@ async def download_bundle(
         # Verify all blobs exist and collect paths
         files = manifest.get("files", [])
         blob_mappings = []  # [(blob_path, bundle_path), ...]
-
         for file_info in files:
-            blob_hash = file_info["hash"]
             bundle_path = file_info["bundle_path"]
+            blob_hash = file_info["hash"]
             blob_path = get_blob_path(blob_hash)
-
             if not blob_path.exists():
                 raise HTTPException(
                     status_code=500, detail=f"Missing blob: {blob_hash}"
                 )
-
             blob_mappings.append((blob_path, bundle_path))
 
         # Create ZIP archive in memory
@@ -81,9 +77,7 @@ async def download_bundle(
             for blob_path, bundle_path in blob_mappings:
                 # Read blob content and add to ZIP with bundle path
                 zf.write(blob_path, arcname=bundle_path)
-
-        # Seek to beginning for streaming
-        zip_buffer.seek(0)
+        zip_buffer.seek(0)  # Seek to beginning for streaming
 
         # Return streaming response
         return StreamingResponse(

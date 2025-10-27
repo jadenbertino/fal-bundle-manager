@@ -1,6 +1,6 @@
 """Bundle creation API endpoint."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 import json
 
 from fastapi import APIRouter, HTTPException
@@ -36,7 +36,7 @@ async def create_bundle(request: BundleManifestDraft):
             - 500: Storage write failure
     """
     try:
-        # Verify all referenced blobs exist
+        # Verify all blobs in bundle have already been uploaded
         missing_hashes = [
             file.hash for file in request.files if not blob_exists(file.hash)
         ]
@@ -62,21 +62,8 @@ async def create_bundle(request: BundleManifestDraft):
 
         merkle_root = computed_merkle_root
 
-        # Create timestamp
-        created_at = datetime.utcnow().isoformat() + "Z"
-
-        # Build complete manifest (includes files)
-        manifest = {
-            "id": bundle_id,
-            "created_at": created_at,
-            "hash_algo": request.hash_algo,
-            "files": [file.model_dump() for file in request.files],
-            "file_count": file_count,
-            "total_bytes": total_bytes,
-            "merkle_root": merkle_root,
-        }
-
-        # Build summary (does NOT include files)
+        # Create summary + manifest
+        created_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
         summary = {
             "id": bundle_id,
             "created_at": created_at,
@@ -85,26 +72,25 @@ async def create_bundle(request: BundleManifestDraft):
             "total_bytes": total_bytes,
             "merkle_root": merkle_root,
         }
+        manifest = {
+            **summary,
+            "files": [file.model_dump() for file in request.files],
+        }
 
-        # Write manifest to storage
-        manifests_dir = get_bundle_manifests_dir()
-        manifests_dir.mkdir(parents=True, exist_ok=True)
-        manifest_path = manifests_dir / f"{bundle_id}.json"
-
-        # Write summary to storage
-        summaries_dir = get_bundle_summaries_dir()
-        summaries_dir.mkdir(parents=True, exist_ok=True)
-        summary_path = summaries_dir / f"{bundle_id}.json"
-
-        # Atomic write: write to temp file, then rename
-        manifest_temp_path = manifest_path.with_suffix(".tmp")
-        summary_temp_path = summary_path.with_suffix(".tmp")
         try:
-            # Write manifest
+            # Save manifest
+            manifests_dir = get_bundle_manifests_dir()
+            manifests_dir.mkdir(parents=True, exist_ok=True)
+            manifest_path = manifests_dir / f"{bundle_id}.json"
+            manifest_temp_path = manifest_path.with_suffix(".tmp")
             manifest_temp_path.write_text(json.dumps(manifest, indent=2))
             manifest_temp_path.rename(manifest_path)
 
-            # Write summary
+            # Save summary
+            summaries_dir = get_bundle_summaries_dir()
+            summaries_dir.mkdir(parents=True, exist_ok=True)
+            summary_path = summaries_dir / f"{bundle_id}.json"
+            summary_temp_path = summary_path.with_suffix(".tmp")
             summary_temp_path.write_text(json.dumps(summary, indent=2))
             summary_temp_path.rename(summary_path)
         except Exception:

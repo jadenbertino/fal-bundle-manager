@@ -32,20 +32,19 @@ async def list_bundles():
     """
     try:
         summaries_dir = get_bundle_summaries_dir()
-        bundles = []
 
         # Check if summaries directory exists
         if not summaries_dir.exists():
             return BundleListResponse(bundles=[])
 
         # Enumerate all .json files in summaries directory
+        bundles = []
         for summary_path in summaries_dir.glob("*.json"):
             try:
                 # Read summary file
-                summary_text = summary_path.read_text()
-                summary = json.loads(summary_text)
+                summary = json.loads(summary_path.read_text())
 
-                # Extract required fields for BundleSummary
+                # Backfill merkle root
                 merkle_root = summary.get("merkle_root")
                 if not merkle_root:
                     try:
@@ -65,6 +64,7 @@ async def list_bundles():
                         )
                         continue
 
+                # Append bundle
                 bundle_summary = BundleSummary(
                     id=summary["id"],
                     created_at=summary["created_at"],
