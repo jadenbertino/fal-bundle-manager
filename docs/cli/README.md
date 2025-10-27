@@ -4,13 +4,13 @@ First, install the CLI wrapper:
 
 ```bash
 # Default installation to ~/.local/bin
-./cli/install.sh
+./scripts/install.sh
 
 # Custom wrapper name
-./cli/install.sh --name my-fal-bundles
+./scripts/install.sh --name my-fal-bundles
 
 # Show all options
-./cli/install.sh --help
+./scripts/install.sh --help
 ```
 
 After installation, you can use the `fal-bundles` command from anywhere:
@@ -85,13 +85,13 @@ To uninstall the CLI wrapper:
 
 ```bash
 # Default uninstall
-./cli/uninstall.sh
+./scripts/uninstall.sh
 
 # Custom wrapper name
-./cli/uninstall.sh --name my-fal-bundles
+./scripts/uninstall.sh --name my-fal-bundles
 
 # Show help
-./cli/uninstall.sh --help
+./scripts/uninstall.sh --help
 ```
 
 **Options**:
